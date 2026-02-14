@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Install dependencies",
+			"type": "shell",
+			"command": "cd c:\\Users\\Bivaas\\Desktop\\Accessibility && npm install"
+		},
+		{
+			"label": "npm-install",
+			"type": "shell",
+			"command": "npm install"
+		},
+		{
+			"label": "install-deps",
+			"type": "shell",
+			"command": "npm install 2>&1",
+			"group": "build"
+		},
+		{
+			"label": "run-npm-install",
+			"type": "shell",
+			"command": "npm install && echo INSTALL_COMPLETE",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "install",
+			"type": "shell",
+			"command": "npm install",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
