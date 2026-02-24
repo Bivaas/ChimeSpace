@@ -95,7 +95,9 @@ export default function MembersList({
             >
               {m.role}
             </span>
-            {currentUserRole === 'OWNER' && m.role !== 'OWNER' && (
+            {/* OWNER can remove anyone except OWNER, ADMIN can remove MEMBER only */}
+            {((currentUserRole === 'OWNER' && m.role !== 'OWNER') ||
+              (currentUserRole === 'ADMIN' && m.role === 'MEMBER')) && (
               <button
                 onClick={() => removeMember(m.userId)}
                 className="ml-2 text-xs text-red-500 hover:text-red-700"

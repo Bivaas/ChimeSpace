@@ -81,7 +81,7 @@ export default function WorkspaceOverviewPage() {
           <h3 className="text-lg font-semibold text-slate-900">
             Members ({ws.memberCount})
           </h3>
-          {ws.role === 'OWNER' && (
+          {(ws.role === 'OWNER' || ws.role === 'ADMIN') && (
             <button
               onClick={() => setShowInvite(true)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -122,6 +122,7 @@ export default function WorkspaceOverviewPage() {
         onClose={() => setShowInvite(false)}
         workspaceId={workspaceId}
         onInvited={() => setRefreshKey((k) => k + 1)}
+        currentUserRole={ws.role}
       />
     </div>
   );

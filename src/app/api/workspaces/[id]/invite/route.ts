@@ -18,7 +18,8 @@ interface RouteContext {
  * - If the user exists → add directly.
  * - If not → create a pending invite (auto-resolved on sign-up).
  *
- * Restricted to OWNER role only.
+ * OWNER can invite as ADMIN or MEMBER.
+ * ADMIN can only invite as MEMBER (privilege escalation prevention).
  */
 export async function POST(
   request: NextRequest,
@@ -27,6 +28,7 @@ export async function POST(
   try {
     const auth = await authenticateAndAuthorize(request, params.id, [
       'OWNER',
+      'ADMIN',
     ]);
     if (auth instanceof NextResponse) return auth;
 
@@ -47,7 +49,16 @@ export async function POST(
       return errorResponse('You cannot invite yourself', 400);
     }
 
-    // Privilege escalation guard (schema already restricts, but defense-in-depth)
+    // Privilege escalation guard: ADMIN cannot invite as ADMIN
+    if (auth.role === 'ADMIN' && role === 'ADMIN') {
+      return errorResponse(
+        'Admins can only invite members, not other admins',
+        403,
+        'PRIVILEGE_ESCALATION'
+      );
+    }
+
+    // Defense-in-depth: only ADMIN or MEMBER roles allowed
     if (!['ADMIN', 'MEMBER'].includes(role)) {
       return errorResponse('Invalid role assignment', 400, 'INVALID_ROLE');
     }

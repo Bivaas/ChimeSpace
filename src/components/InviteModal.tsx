@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void;
   workspaceId: string;
   onInvited: () => void;
+  currentUserRole?: string;
 }
 
 export default function InviteModal({
@@ -15,12 +16,16 @@ export default function InviteModal({
   onClose,
   workspaceId,
   onInvited,
+  currentUserRole = 'MEMBER',
 }: Props) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // ADMINs can only invite as MEMBER
+  const canInviteAsAdmin = currentUserRole === 'OWNER';
 
   if (!isOpen) return null;
 
@@ -68,16 +73,22 @@ export default function InviteModal({
               required
               autoFocus
             />
-            <select
-              value={role}
-              onChange={(e) =>
-                setRole(e.target.value as 'MEMBER' | 'ADMIN')
-              }
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="MEMBER">Member</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            {canInviteAsAdmin ? (
+              <select
+                value={role}
+                onChange={(e) =>
+                  setRole(e.target.value as 'MEMBER' | 'ADMIN')
+                }
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="MEMBER">Member</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            ) : (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-slate-600">
+                Role: Member <span className="text-xs text-slate-400">(Admins can only invite members)</span>
+              </div>
+            )}
           </div>
 
           {error && (

@@ -68,8 +68,10 @@ export async function GET(
 /**
  * DELETE /api/workspaces/[id]/members?userId=<id>
  *
- * Removes a member from the workspace. OWNER only.
- * The owner cannot remove themselves.
+ * Removes a member from the workspace.
+ * - OWNER can remove anyone except themselves.
+ * - ADMIN can only remove MEMBER (not OWNER or other ADMINs).
+ * - MEMBER cannot remove anyone.
  */
 export async function DELETE(
   request: NextRequest,
@@ -78,6 +80,7 @@ export async function DELETE(
   try {
     const auth = await authenticateAndAuthorize(request, params.id, [
       'OWNER',
+      'ADMIN',
     ]);
     if (auth instanceof NextResponse) return auth;
 
@@ -91,23 +94,41 @@ export async function DELETE(
       );
     }
 
+    // Cannot remove yourself
     if (targetUserId === auth.user.userId) {
       return errorResponse(
-        'Owners cannot remove themselves. Delete the workspace instead.',
+        'You cannot remove yourself from the workspace.',
         400
       );
     }
 
     await connectDB();
 
-    const removed = await WorkspaceMember.findOneAndDelete({
+    // Find the target member to check their role
+    const targetMember = await WorkspaceMember.findOne({
+      workspaceId: params.id,
+      userId: targetUserId,
+    }).lean() as { role: string } | null;
+
+    if (!targetMember) {
+      return errorResponse('Member not found in this workspace', 404);
+    }
+
+    // Privilege check: ADMIN cannot remove OWNER or other ADMINs
+    if (auth.role === 'ADMIN') {
+      if (targetMember.role === 'OWNER' || targetMember.role === 'ADMIN') {
+        return errorResponse(
+          'Admins can only remove members, not owners or other admins',
+          403,
+          'PRIVILEGE_ESCALATION'
+        );
+      }
+    }
+
+    await WorkspaceMember.deleteOne({
       workspaceId: params.id,
       userId: targetUserId,
     });
-
-    if (!removed) {
-      return errorResponse('Member not found in this workspace', 404);
-    }
 
     return successResponse({ message: 'Member removed successfully' });
   } catch (err) {
