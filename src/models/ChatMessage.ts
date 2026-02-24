@@ -13,7 +13,6 @@ const ChatMessageSchema = new Schema<IChatMessage>(
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
-      index: true,
     },
     senderId: {
       type: Schema.Types.ObjectId,
@@ -29,6 +28,9 @@ const ChatMessageSchema = new Schema<IChatMessage>(
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
+
+// Compound index for efficient paginated queries by workspace
+ChatMessageSchema.index({ workspaceId: 1, createdAt: -1 });
 
 const ChatMessage: Model<IChatMessage> =
   mongoose.models.ChatMessage ||

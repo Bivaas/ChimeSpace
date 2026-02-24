@@ -7,6 +7,41 @@ import { sanitizeInput } from '@/lib/sanitize';
 import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limit';
 import ChatMessage from '@/models/ChatMessage';
 
+/**
+ * TODO: WebSocket Upgrade for Real-Time Chat
+ * 
+ * Current implementation uses polling. For real-time messaging:
+ * 
+ * 1. Use Socket.IO or native WebSockets with Next.js API route
+ * 2. Create /api/workspaces/[id]/chat/ws endpoint
+ * 3. Authentication via JWT in connection handshake
+ * 4. Room-based architecture: join workspace room on connect
+ * 5. Broadcast to room on message creation
+ * 
+ * Implementation options:
+ * - socket.io-client + socket.io (custom server)
+ * - Pusher/Ably for managed WebSocket infrastructure
+ * - Supabase Realtime for PostgreSQL-based solution
+ * 
+ * Security considerations:
+ * - Verify workspace membership on connection
+ * - Rate limit WebSocket messages
+ * - Handle reconnection gracefully
+ */
+
+/**
+ * TODO: File Attachments
+ * 
+ * For file sharing in chat:
+ * 
+ * 1. Add file upload endpoint /api/workspaces/[id]/files
+ * 2. Store files in S3/Cloudflare R2/Vercel Blob
+ * 3. Store file metadata in ChatMessage or separate File collection
+ * 4. Validate file types and sizes (max 10MB, images/docs only)
+ * 5. Generate signed URLs for secure download
+ * 6. Scan for malware before storage (in production)
+ */
+
 interface RouteContext {
   params: { id: string };
 }

@@ -33,10 +33,10 @@ export default function MembersList({
   const [loading, setLoading] = useState(true);
 
   const fetchMembers = useCallback(async () => {
-    const result = await apiFetch<Member[]>(
+    const result = await apiFetch<{ members: Member[]; pagination: { total: number } }>(
       `/api/workspaces/${workspaceId}/members`
     );
-    if (result.success) setMembers(result.data);
+    if (result.success) setMembers(result.data.members);
     setLoading(false);
   }, [workspaceId]);
 

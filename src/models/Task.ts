@@ -16,7 +16,6 @@ const TaskSchema = new Schema<ITask>(
       type: Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
-      index: true,
     },
     title: {
       type: String,
@@ -49,6 +48,9 @@ const TaskSchema = new Schema<ITask>(
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
+
+// Compound index for efficient paginated queries by workspace
+TaskSchema.index({ workspaceId: 1, createdAt: -1 });
 
 const Task: Model<ITask> =
   mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

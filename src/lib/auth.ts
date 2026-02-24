@@ -8,6 +8,39 @@ const COOKIE_NAME = 'session_token';
 const CSRF_COOKIE_NAME = 'csrf_token';
 const SESSION_DURATION = 7 * 24 * 60 * 60; // 7 days in seconds
 
+/**
+ * TODO: Token Rotation / Refresh Strategy
+ * 
+ * Current implementation uses stateless JWTs with 7-day expiration.
+ * For enhanced security, consider:
+ * 
+ * 1. Short-lived access tokens (15 min) + refresh tokens
+ * 2. Sliding window session renewal
+ * 3. Redis-backed session store for server-side invalidation
+ * 4. Token versioning to allow forced logout across all devices
+ * 
+ * Implementation:
+ * - Store refresh token hash in DB with userId + deviceId
+ * - Access token contains userId only, validated against DB
+ * - Refresh endpoint issues new access token if refresh token valid
+ * - Logout invalidates refresh token in DB
+ */
+
+/**
+ * TODO: Audit Logging
+ * 
+ * For compliance and security monitoring, consider logging:
+ * - Login events (userId, timestamp, IP, userAgent)
+ * - Failed login attempts
+ * - Role changes
+ * - Workspace access
+ * - Sensitive data access
+ * 
+ * Implementation:
+ * - AuditLog MongoDB collection with TTL index
+ * - Or stream to external logging service (CloudWatch, Datadog)
+ */
+
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) {

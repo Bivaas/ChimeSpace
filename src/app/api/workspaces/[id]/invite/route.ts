@@ -88,7 +88,7 @@ export async function POST(
       });
 
       return successResponse(
-        { message: 'User added to workspace', status: 'added' },
+        { message: 'Invitation processed successfully' },
         201
       );
     }
@@ -115,9 +115,7 @@ export async function POST(
 
     return successResponse(
       {
-        message:
-          'Invitation created. The user will be added automatically when they sign up.',
-        status: 'pending',
+        message: 'Invitation processed successfully',
       },
       201
     );

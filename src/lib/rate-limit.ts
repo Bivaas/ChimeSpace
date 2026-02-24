@@ -3,6 +3,35 @@
  *
  * IMPORTANT: Works for single-instance deployments only.
  * Replace the store with a Redis adapter for multi-instance / serverless.
+ * 
+ * TODO: Redis Rate Limiter Integration
+ * 
+ * For production multi-instance deployments:
+ * 
+ * 1. Install ioredis: npm install ioredis
+ * 2. Create RedisRateLimiter class implementing same interface
+ * 3. Use MULTI/EXEC for atomic increment + TTL
+ * 4. Example implementation:
+ * 
+ *    async check(key: string, limit: number, windowMs: number) {
+ *      const now = Date.now();
+ *      const windowKey = `ratelimit:${key}:${Math.floor(now / windowMs)}`;
+ *      
+ *      const multi = redis.multi();
+ *      multi.incr(windowKey);
+ *      multi.pttl(windowKey);
+ *      const [[, count], [, ttl]] = await multi.exec();
+ *      
+ *      if (ttl === -1) await redis.pexpire(windowKey, windowMs);
+ *      
+ *      return {
+ *        allowed: count <= limit,
+ *        remaining: Math.max(0, limit - count),
+ *        retryAfterMs: count > limit ? ttl : 0,
+ *      };
+ *    }
+ * 
+ * 5. Use env variable REDIS_URL to conditionally select implementation
  */
 
 interface RateLimitEntry {

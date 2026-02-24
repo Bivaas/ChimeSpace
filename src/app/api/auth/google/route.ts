@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { generateCsrfToken } from '@/lib/auth';
+import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limit';
+import { errorResponse } from '@/lib/api-response';
 
 /**
  * GET /api/auth/google
@@ -8,7 +10,21 @@ import { generateCsrfToken } from '@/lib/auth';
  * Generates an anti-CSRF state parameter, stores it in a cookie,
  * then redirects the user to Google's consent screen.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Rate limit OAuth initiation by IP to prevent abuse
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+  const rl = rateLimiter.check(
+    `oauth:${ip}`,
+    RATE_LIMITS.AUTH_ATTEMPT.limit,
+    RATE_LIMITS.AUTH_ATTEMPT.windowMs
+  );
+  if (!rl.allowed) {
+    return errorResponse('Too many login attempts. Please try again later.', 429);
+  }
+
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 

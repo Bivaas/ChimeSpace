@@ -6,10 +6,21 @@ import {
   setCsrfCookie,
   generateCsrfToken,
 } from '@/lib/auth';
+import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limit';
 import User from '@/models/User';
 import PendingInvite from '@/models/PendingInvite';
 import WorkspaceMember from '@/models/WorkspaceMember';
 import type { GoogleUserInfo } from '@/types';
+
+/** Constant-time string comparison to prevent timing attacks on state param. */
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
 
 /**
  * GET /api/auth/google/callback
@@ -19,9 +30,30 @@ import type { GoogleUserInfo } from '@/types';
  * pending invites, mints a JWT session, and redirects to /dashboard.
  */
 export async function GET(request: NextRequest) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrl) {
+    console.error('NEXT_PUBLIC_APP_URL is not configured');
+    return NextResponse.json(
+      { success: false, error: { code: 'CONFIG_ERROR', message: 'Server misconfiguration' } },
+      { status: 500 }
+    );
+  }
 
   try {
+    // Rate limit callback by IP
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+    const rl = rateLimiter.check(
+      `oauth_cb:${ip}`,
+      RATE_LIMITS.AUTH_ATTEMPT.limit,
+      RATE_LIMITS.AUTH_ATTEMPT.windowMs
+    );
+    if (!rl.allowed) {
+      return NextResponse.redirect(`${appUrl}/?error=rate_limited`);
+    }
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -37,7 +69,7 @@ export async function GET(request: NextRequest) {
 
     /* ── Guard: State parameter (CSRF) ───────────────────── */
     const storedState = request.cookies.get('oauth_state')?.value;
-    if (!storedState || storedState !== state) {
+    if (!storedState || !constantTimeEqual(storedState, state)) {
       return NextResponse.redirect(`${appUrl}/?error=invalid_state`);
     }
 

@@ -12,9 +12,9 @@ interface RouteContext {
 }
 
 /**
- * GET /api/workspaces/[id]/tasks
+ * GET /api/workspaces/[id]/tasks?limit=50&page=1&status=TODO
  *
- * Returns all tasks in a workspace, newest first.
+ * Returns tasks in a workspace with pagination, newest first.
  */
 export async function GET(
   request: NextRequest,
@@ -24,11 +24,30 @@ export async function GET(
     const auth = await authenticateAndAuthorize(request, params.id);
     if (auth instanceof NextResponse) return auth;
 
+    const { searchParams } = new URL(request.url);
+    const limit = Math.min(
+      Math.max(parseInt(searchParams.get('limit') || '50', 10) || 50, 1),
+      100
+    );
+    const page = Math.max(parseInt(searchParams.get('page') || '1', 10) || 1, 1);
+    const status = searchParams.get('status');
+    const skip = (page - 1) * limit;
+
     await connectDB();
 
-    const tasks = await Task.find({ workspaceId: params.id })
-      .sort({ createdAt: -1 })
-      .lean();
+    const query: Record<string, unknown> = { workspaceId: params.id };
+    if (status && ['TODO', 'IN_PROGRESS', 'DONE'].includes(status)) {
+      query.status = status;
+    }
+
+    const [tasks, total] = await Promise.all([
+      Task.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Task.countDocuments(query),
+    ]);
 
     const result = tasks.map((t) => ({
       _id: t._id.toString(),
@@ -40,7 +59,16 @@ export async function GET(
       createdAt: t.createdAt.toISOString(),
     }));
 
-    return successResponse(result);
+    return successResponse({
+      tasks: result,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total,
+      },
+    });
   } catch (err) {
     console.error('GET /api/workspaces/[id]/tasks error:', err);
     return errorResponse('Internal server error', 500);
