@@ -12,12 +12,15 @@ import { errorResponse } from '@/lib/api-response';
  */
 export async function GET(request: NextRequest) {
   // Rate limit OAuth initiation by IP to prevent abuse
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  const forwardedFor =
+    request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-vercel-forwarded-for') ||
+    request.headers.get('x-real-ip');
+  const ip = forwardedFor?.split(',')[0]?.trim();
+  const userAgent = request.headers.get('user-agent')?.slice(0, 120) || 'unknown';
+  const rateLimitKey = ip ? `oauth:${ip}` : `oauth:ua:${userAgent}`;
   const rl = rateLimiter.check(
-    `oauth:${ip}`,
+    rateLimitKey,
     RATE_LIMITS.AUTH_ATTEMPT.limit,
     RATE_LIMITS.AUTH_ATTEMPT.windowMs
   );

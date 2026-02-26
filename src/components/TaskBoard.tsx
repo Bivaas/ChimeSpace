@@ -48,10 +48,10 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
   const [creating, setCreating] = useState(false);
 
   const fetchTasks = useCallback(async () => {
-    const res = await apiFetch<Task[]>(
+    const res = await apiFetch<{ tasks: Task[]; pagination: unknown }>(
       `/api/workspaces/${workspaceId}/tasks`
     );
-    if (res.success) setTasks(res.data);
+    if (res.success) setTasks(res.data.tasks);
     setLoading(false);
   }, [workspaceId]);
 

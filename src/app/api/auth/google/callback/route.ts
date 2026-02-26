@@ -41,12 +41,15 @@ export async function GET(request: NextRequest) {
 
   try {
     // Rate limit callback by IP
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
+    const forwardedFor =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-vercel-forwarded-for') ||
+      request.headers.get('x-real-ip');
+    const ip = forwardedFor?.split(',')[0]?.trim();
+    const userAgent = request.headers.get('user-agent')?.slice(0, 120) || 'unknown';
+    const rateLimitKey = ip ? `oauth_cb:${ip}` : `oauth_cb:ua:${userAgent}`;
     const rl = rateLimiter.check(
-      `oauth_cb:${ip}`,
+      rateLimitKey,
       RATE_LIMITS.AUTH_ATTEMPT.limit,
       RATE_LIMITS.AUTH_ATTEMPT.windowMs
     );
