@@ -110,7 +110,7 @@ export function setSessionCookie(
   response.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: SESSION_DURATION,
     path: '/',
   });

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -52,7 +53,10 @@ const features = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const cookieStore = await cookies();
+  const isLoggedIn = cookieStore.has('session_token');
+
   return (
     <div className="min-h-screen bg-white">
       {/* ── Header ─────────────────────────────────────────── */}
@@ -66,12 +70,21 @@ export default function LandingPage() {
               WorkspaceHub
             </span>
           </div>
-          <Link
-            href="/api/auth/google"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            Login with Google
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/api/auth/google"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              Login with Google
+            </Link>
+          )}
         </div>
       </header>
 
@@ -86,13 +99,22 @@ export default function LandingPage() {
           WorkspaceHub brings your team together with secure workspaces,
           task management, and real-time communication — all in one place.
         </p>
-        <Link
-          href="/api/auth/google"
-          className="inline-flex items-center gap-3 rounded-xl bg-blue-600 px-8 py-4 text-lg font-medium text-white shadow-lg shadow-blue-500/25 transition-colors hover:bg-blue-700"
-        >
-          <GoogleIcon />
-          Login with Google
-        </Link>
+        {isLoggedIn ? (
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-3 rounded-xl bg-blue-600 px-8 py-4 text-lg font-medium text-white shadow-lg shadow-blue-500/25 transition-colors hover:bg-blue-700"
+          >
+            Go to Dashboard →
+          </Link>
+        ) : (
+          <Link
+            href="/api/auth/google"
+            className="inline-flex items-center gap-3 rounded-xl bg-blue-600 px-8 py-4 text-lg font-medium text-white shadow-lg shadow-blue-500/25 transition-colors hover:bg-blue-700"
+          >
+            <GoogleIcon />
+            Login with Google
+          </Link>
+        )}
       </section>
 
       {/* ── Features ───────────────────────────────────────── */}

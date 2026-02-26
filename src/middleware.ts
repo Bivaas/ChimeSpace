@@ -26,16 +26,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Authenticated user hitting landing → dashboard
-  if (pathname === '/' && hasSession) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
-  }
+  // Authenticated users can view the landing page freely —
+  // no forced redirect to /dashboard.
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/workspace/:path*'],
+  matcher: ['/dashboard/:path*', '/workspace/:path*'],
 };

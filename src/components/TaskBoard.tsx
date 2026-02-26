@@ -48,11 +48,16 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
   const [creating, setCreating] = useState(false);
 
   const fetchTasks = useCallback(async () => {
-    const res = await apiFetch<{ tasks: Task[]; pagination: unknown }>(
-      `/api/workspaces/${workspaceId}/tasks`
-    );
-    if (res.success) setTasks(res.data.tasks);
-    setLoading(false);
+    try {
+      const res = await apiFetch<{ tasks: Task[]; pagination: unknown }>(
+        `/api/workspaces/${workspaceId}/tasks`
+      );
+      if (res.success) setTasks(res.data.tasks);
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [workspaceId]);
 
   useEffect(() => {

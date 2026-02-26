@@ -55,12 +55,12 @@ export default function ChatPanel({ workspaceId }: Props) {
   }, [workspaceId]);
 
   const fetchMembers = useCallback(async () => {
-    const res = await apiFetch<MemberInfo[]>(
+    const res = await apiFetch<{ members: MemberInfo[]; pagination: unknown }>(
       `/api/workspaces/${workspaceId}/members`
     );
     if (res.success) {
       const map = new Map<string, string>();
-      res.data.forEach((m) =>
+      res.data.members.forEach((m) =>
         map.set(m.userId, m.user?.name || 'Unknown')
       );
       setNameMap(map);
