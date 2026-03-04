@@ -10,12 +10,14 @@ export interface JWTPayload {
   userId: string;
   email: string;
   issuedAt: number;
+  jti: string;
 }
 
 /** Minimal authenticated user info extracted from a verified JWT. */
 export interface AuthenticatedUser {
   userId: string;
   email: string;
+  jti: string;
 }
 
 /* ── API Response Envelopes ───────────────────────────────── */
@@ -52,4 +54,26 @@ export interface WorkspaceWithRole {
   ownerId: string;
   createdAt: string;
   role: WorkspaceRole;
+}
+
+/* ── Audit Log ────────────────────────────────────────────── */
+
+export type AuditAction =
+  | 'INVITE_SENT'
+  | 'INVITE_ACCEPTED'
+  | 'MEMBER_REMOVED'
+  | 'ROLE_CHANGED'
+  | 'OWNERSHIP_TRANSFERRED'
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'SESSION_REVOKED';
+
+export interface AuditLogEntry {
+  _id: string;
+  workspaceId?: string;
+  actorUserId: string;
+  action: AuditAction;
+  targetUserId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
 }

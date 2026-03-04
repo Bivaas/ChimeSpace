@@ -5,11 +5,14 @@ import {
   setSessionCookie,
   setCsrfCookie,
   generateCsrfToken,
+  SESSION_DURATION,
 } from '@/lib/auth';
 import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limit';
 import User from '@/models/User';
 import PendingInvite from '@/models/PendingInvite';
 import WorkspaceMember from '@/models/WorkspaceMember';
+import Session from '@/models/Session';
+import { logAudit } from '@/lib/audit';
 import type { GoogleUserInfo } from '@/types';
 
 /** Constant-time string comparison to prevent timing attacks on state param. */
@@ -140,9 +143,44 @@ export async function GET(request: NextRequest) {
     }
 
     /* ── Mint session ────────────────────────────────────── */
-    const jwt = await signJWT({
+    const { token: jwt, jti } = await signJWT({
       userId: user._id.toString(),
       email: user.email,
+    });
+
+    // Persist session for server-side revocation
+    const forwardedFor2 =
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip');
+    const clientIp = forwardedFor2?.split(',')[0]?.trim() || '';
+    // Simple hash of IP for privacy (not storing raw IP)
+    const ipHashValue = clientIp
+      ? Array.from(
+          new Uint8Array(
+            await crypto.subtle.digest(
+              'SHA-256',
+              new TextEncoder().encode(clientIp)
+            )
+          )
+        )
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('')
+          .slice(0, 16)
+      : '';
+
+    await Session.create({
+      userId: user._id,
+      jti,
+      expiresAt: new Date(Date.now() + SESSION_DURATION * 1000),
+      userAgent: (request.headers.get('user-agent') || '').slice(0, 256),
+      ipHash: ipHashValue,
+    });
+
+    // Audit log: login
+    await logAudit({
+      actorUserId: user._id.toString(),
+      action: 'LOGIN',
+      metadata: { ipHash: ipHashValue },
     });
 
     const response = NextResponse.redirect(`${appUrl}/dashboard`);

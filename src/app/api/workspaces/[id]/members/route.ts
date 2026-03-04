@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { validateObjectId } from '@/lib/validation';
 import { isValidRoleTransition } from '@/lib/rbac';
+import { logAudit } from '@/lib/audit';
 import WorkspaceMember from '@/models/WorkspaceMember';
 import User from '@/models/User';
 import { z } from 'zod';
@@ -180,6 +181,13 @@ export async function DELETE(
       userId: targetUserId,
     });
 
+    await logAudit({
+      workspaceId: params.id,
+      actorUserId: auth.user.userId,
+      action: 'MEMBER_REMOVED',
+      targetUserId,
+    });
+
     return successResponse({ message: 'Member removed successfully' });
   } catch (err) {
     console.error('DELETE /api/workspaces/[id]/members error:', err);
@@ -257,8 +265,17 @@ export async function PATCH(
       );
     }
 
+    const oldRole = targetMember.role;
     targetMember.role = newRole;
     await targetMember.save();
+
+    await logAudit({
+      workspaceId: params.id,
+      actorUserId: auth.user.userId,
+      action: 'ROLE_CHANGED',
+      targetUserId,
+      metadata: { oldRole, newRole },
+    });
 
     return successResponse({
       message: `Role changed to ${newRole} successfully`,

@@ -8,39 +8,6 @@ const COOKIE_NAME = 'session_token';
 const CSRF_COOKIE_NAME = 'csrf_token';
 const SESSION_DURATION = 7 * 24 * 60 * 60; // 7 days in seconds
 
-/**
- * TODO: Token Rotation / Refresh Strategy
- * 
- * Current implementation uses stateless JWTs with 7-day expiration.
- * For enhanced security, consider:
- * 
- * 1. Short-lived access tokens (15 min) + refresh tokens
- * 2. Sliding window session renewal
- * 3. Redis-backed session store for server-side invalidation
- * 4. Token versioning to allow forced logout across all devices
- * 
- * Implementation:
- * - Store refresh token hash in DB with userId + deviceId
- * - Access token contains userId only, validated against DB
- * - Refresh endpoint issues new access token if refresh token valid
- * - Logout invalidates refresh token in DB
- */
-
-/**
- * TODO: Audit Logging
- * 
- * For compliance and security monitoring, consider logging:
- * - Login events (userId, timestamp, IP, userAgent)
- * - Failed login attempts
- * - Role changes
- * - Workspace access
- * - Sensitive data access
- * 
- * Implementation:
- * - AuditLog MongoDB collection with TTL index
- * - Or stream to external logging service (CloudWatch, Datadog)
- */
-
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) {
@@ -57,20 +24,35 @@ function getSecretKey(): Uint8Array {
 
 /* ── JWT helpers ──────────────────────────────────────────── */
 
-export async function signJWT(
-  payload: Omit<AppJWTPayload, 'issuedAt'>
-): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
+/** Generate a UUID v4 for JWT jti claims. */
+function generateJti(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 1
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
-  return new SignJWT({
+export async function signJWT(
+  payload: Omit<AppJWTPayload, 'issuedAt' | 'jti'>
+): Promise<{ token: string; jti: string }> {
+  const now = Math.floor(Date.now() / 1000);
+  const jti = generateJti();
+
+  const token = await new SignJWT({
     userId: payload.userId,
     email: payload.email,
     issuedAt: now,
+    jti,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt(now)
     .setExpirationTime(now + SESSION_DURATION)
+    .setJti(jti)
     .sign(getSecretKey());
+
+  return { token, jti };
 }
 
 export async function verifyJWT(
@@ -88,11 +70,14 @@ export async function verifyJWT(
       return null;
     }
 
+    const jti = (payload.jti as string) || '';
+
     return {
       userId: payload.userId as string,
       email: payload.email as string,
       issuedAt:
         (payload.issuedAt as number) ?? (payload.iat as number) ?? 0,
+      jti,
     };
   } catch {
     return null;
@@ -147,7 +132,22 @@ export async function getSessionFromRequest(
   const payload = await verifyJWT(token);
   if (!payload) return null;
 
-  return { userId: payload.userId, email: payload.email };
+  // For tokens issued before session revocation was added (no jti),
+  // allow them through but without revocation checks.
+  if (payload.jti) {
+    const { connectDB } = await import('@/lib/db');
+    const SessionModel = (await import('@/models/Session')).default;
+    await connectDB();
+
+    const session = await SessionModel.findOne({ jti: payload.jti }).lean();
+    if (!session) return null; // session not found in DB
+    if ((session as { revokedAt?: Date | null }).revokedAt) return null; // session revoked
+
+    const expiresAt = (session as { expiresAt: Date }).expiresAt;
+    if (new Date() > new Date(expiresAt)) return null; // session expired
+  }
+
+  return { userId: payload.userId, email: payload.email, jti: payload.jti };
 }
 
 /* ── CSRF helpers ─────────────────────────────────────────── */
@@ -180,4 +180,4 @@ export function validateCsrf(request: NextRequest): boolean {
   return mismatch === 0;
 }
 
-export { COOKIE_NAME, CSRF_COOKIE_NAME };
+export { COOKIE_NAME, CSRF_COOKIE_NAME, SESSION_DURATION };

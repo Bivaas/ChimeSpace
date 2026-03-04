@@ -91,3 +91,21 @@ export const sendMessageSchema = z
 export function validateObjectId(id: string): boolean {
   return /^[a-f\d]{24}$/i.test(id);
 }
+
+/* ── Ownership Transfer ──────────────────────────────────── */
+
+export const transferOwnershipSchema = z
+  .object({
+    newOwnerUserId: z
+      .string()
+      .regex(/^[a-f\d]{24}$/i, 'Invalid user ID'),
+  })
+  .strict();
+
+/* ── Session Revoke ──────────────────────────────────────── */
+
+export const revokeSessionSchema = z
+  .object({
+    jti: z.string().min(1, 'Session ID is required'),
+  })
+  .strict();

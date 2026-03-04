@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/client/api';
+import { useAuth } from '@/hooks/useAuth';
 import MembersList from '@/components/MembersList';
 import InviteModal from '@/components/InviteModal';
+import TransferOwnershipModal from '@/components/TransferOwnershipModal';
+import AuditLogTable from '@/components/AuditLogTable';
 
 interface WorkspaceDetails {
   _id: string;
@@ -18,11 +21,14 @@ interface WorkspaceDetails {
 export default function WorkspaceOverviewPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const workspaceId = params.id as string;
 
   const [ws, setWs] = useState<WorkspaceDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [showAuditLogs, setShowAuditLogs] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
@@ -97,6 +103,47 @@ export default function WorkspaceOverviewPage() {
         />
       </div>
 
+      {/* Ownership Transfer (OWNER only) */}
+      {ws.role === 'OWNER' && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-amber-900">
+              Transfer Ownership
+            </h3>
+            <button
+              onClick={() => setShowTransfer(true)}
+              className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
+            >
+              Transfer
+            </button>
+          </div>
+          <p className="text-sm text-amber-700">
+            Transfer this workspace to another member. You will be
+            demoted to Admin.
+          </p>
+        </div>
+      )}
+
+      {/* Audit Logs (OWNER + ADMIN) */}
+      {(ws.role === 'OWNER' || ws.role === 'ADMIN') && (
+        <div className="mb-6 rounded-xl bg-slate-50 p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-900">
+              Audit Logs
+            </h3>
+            <button
+              onClick={() => setShowAuditLogs((v) => !v)}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-white"
+            >
+              {showAuditLogs ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showAuditLogs && (
+            <AuditLogTable workspaceId={workspaceId} />
+          )}
+        </div>
+      )}
+
       {/* Danger zone */}
       {ws.role === 'OWNER' && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-6">
@@ -124,6 +171,19 @@ export default function WorkspaceOverviewPage() {
         onInvited={() => setRefreshKey((k) => k + 1)}
         currentUserRole={ws.role}
       />
+
+      {user && (
+        <TransferOwnershipModal
+          isOpen={showTransfer}
+          onClose={() => setShowTransfer(false)}
+          workspaceId={workspaceId}
+          currentUserId={user.id}
+          onTransferred={() => {
+            // Reload workspace details to reflect new role
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }

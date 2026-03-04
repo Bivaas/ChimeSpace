@@ -3,6 +3,7 @@ import { authenticateAndAuthorize } from '@/middleware/authMiddleware';
 import { connectDB } from '@/lib/db';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { inviteSchema } from '@/lib/validation';
+import { logAudit } from '@/lib/audit';
 import User from '@/models/User';
 import WorkspaceMember from '@/models/WorkspaceMember';
 import PendingInvite from '@/models/PendingInvite';
@@ -87,6 +88,14 @@ export async function POST(
         role,
       });
 
+      await logAudit({
+        workspaceId: params.id,
+        actorUserId: auth.user.userId,
+        action: 'INVITE_SENT',
+        targetUserId: existingUser._id.toString(),
+        metadata: { email, role, autoJoined: true },
+      });
+
       return successResponse(
         { message: 'Invitation processed successfully' },
         201
@@ -111,6 +120,13 @@ export async function POST(
       workspaceId: params.id,
       role,
       invitedBy: auth.user.userId,
+    });
+
+    await logAudit({
+      workspaceId: params.id,
+      actorUserId: auth.user.userId,
+      action: 'INVITE_SENT',
+      metadata: { email, role, autoJoined: false },
     });
 
     return successResponse(
