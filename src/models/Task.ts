@@ -4,6 +4,7 @@ export interface ITask extends Document {
   workspaceId: Types.ObjectId;
   title: string;
   description: string;
+  comment: string;
   createdBy: Types.ObjectId;
   assignedTo?: Types.ObjectId;
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
@@ -28,6 +29,12 @@ const TaskSchema = new Schema<ITask>(
       default: '',
       trim: true,
       maxlength: 2000,
+    },
+    comment: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 500,
     },
     createdBy: {
       type: Schema.Types.ObjectId,

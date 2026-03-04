@@ -22,8 +22,7 @@ const ChatMessageSchema = new Schema<IChatMessage>(
     message: {
       type: String,
       required: true,
-      trim: true,
-      maxlength: 1000,
+      maxlength: 4000,
     },
   },
   { timestamps: { createdAt: true, updatedAt: false } }

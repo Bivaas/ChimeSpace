@@ -44,6 +44,11 @@ export default function WorkspaceLayout({
       label: 'Chat',
       icon: '💬',
     },
+    {
+      href: `/workspace/${workspaceId}/whiteboards`,
+      label: 'Whiteboards',
+      icon: '🎨',
+    },
   ];
 
   return (

@@ -53,6 +53,7 @@ export async function GET(
       _id: t._id.toString(),
       title: t.title,
       description: t.description,
+      comment: (t as unknown as { comment?: string }).comment || '',
       createdBy: t.createdBy.toString(),
       assignedTo: t.assignedTo?.toString() ?? null,
       status: t.status,
@@ -99,7 +100,7 @@ export async function POST(
       );
     }
 
-    const { title, description, assignedTo, status } = parsed.data;
+    const { title, description, assignedTo, status, comment } = parsed.data;
 
     await connectDB();
 
@@ -121,6 +122,7 @@ export async function POST(
       workspaceId: params.id,
       title: sanitizeInput(title),
       description: description ? sanitizeInput(description) : '',
+      comment: comment ? sanitizeInput(comment) : '',
       createdBy: auth.user.userId,
       assignedTo: assignedTo || null,
       status: status || 'TODO',
@@ -131,6 +133,7 @@ export async function POST(
         _id: task._id.toString(),
         title: task.title,
         description: task.description,
+        comment: task.comment,
         createdBy: task.createdBy.toString(),
         assignedTo: task.assignedTo?.toString() ?? null,
         status: task.status,

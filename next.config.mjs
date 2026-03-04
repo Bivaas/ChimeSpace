@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  transpilePackages: ['@excalidraw/excalidraw'],
   images: {
     remotePatterns: [
       {
@@ -25,8 +26,8 @@ const nextConfig = {
           "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js requires these
           "style-src 'self' 'unsafe-inline'", // Tailwind inline styles
           "img-src 'self' https://lh3.googleusercontent.com data: blob:",
-          "font-src 'self'",
-          "connect-src 'self'",
+          "font-src 'self' data: https://unpkg.com",
+          "connect-src 'self' https://unpkg.com",
           "frame-ancestors 'none'",
           "base-uri 'self'",
           "form-action 'self'",

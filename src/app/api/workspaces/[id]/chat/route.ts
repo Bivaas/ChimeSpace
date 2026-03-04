@@ -3,7 +3,7 @@ import { authenticateAndAuthorize } from '@/middleware/authMiddleware';
 import { connectDB } from '@/lib/db';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { sendMessageSchema } from '@/lib/validation';
-import { sanitizeInput } from '@/lib/sanitize';
+import { sanitizeInput, escapeHtml } from '@/lib/sanitize';
 import { rateLimiter, RATE_LIMITS } from '@/lib/rate-limit';
 import ChatMessage from '@/models/ChatMessage';
 
@@ -141,7 +141,7 @@ export async function POST(
     const msg = await ChatMessage.create({
       workspaceId: params.id,
       senderId: auth.user.userId,
-      message: sanitizeInput(parsed.data.message),
+      message: escapeHtml(parsed.data.message),
     });
 
     return successResponse(

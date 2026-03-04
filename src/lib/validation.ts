@@ -44,6 +44,11 @@ export const createTaskSchema = z
       .trim()
       .max(2000, 'Description must be 2000 characters or less')
       .default(''),
+    comment: z
+      .string()
+      .trim()
+      .max(500, 'Comment must be 500 characters or less')
+      .default(''),
     assignedTo: z
       .string()
       .regex(/^[a-f\d]{24}$/i, 'Invalid user ID')
@@ -65,6 +70,11 @@ export const updateTaskSchema = z
       .trim()
       .max(2000, 'Description must be 2000 characters or less')
       .optional(),
+    comment: z
+      .string()
+      .trim()
+      .max(500, 'Comment must be 500 characters or less')
+      .optional(),
     assignedTo: z
       .string()
       .regex(/^[a-f\d]{24}$/i, 'Invalid user ID')
@@ -80,9 +90,9 @@ export const sendMessageSchema = z
   .object({
     message: z
       .string()
-      .trim()
       .min(1, 'Message cannot be empty')
-      .max(1000, 'Message must be 1000 characters or less'),
+      .max(4000, 'Message must be 4000 characters or less')
+      .transform((v) => v.replace(/^\s+|\s+$/g, '')),
   })
   .strict();
 
@@ -107,5 +117,29 @@ export const transferOwnershipSchema = z
 export const revokeSessionSchema = z
   .object({
     jti: z.string().min(1, 'Session ID is required'),
+  })
+  .strict();
+
+/* ── Whiteboard ───────────────────────────────────────────── */
+
+const MAX_DRAFT_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export const createWhiteboardSchema = z
+  .object({
+    title: z
+      .string()
+      .trim()
+      .min(1, 'Title is required')
+      .max(100, 'Title must be 100 characters or less')
+      .default('Untitled Whiteboard'),
+  })
+  .strict();
+
+export const updateWhiteboardDraftSchema = z
+  .object({
+    draftState: z
+      .string()
+      .min(1, 'Draft state is required')
+      .max(MAX_DRAFT_BYTES, 'Draft payload too large (max 5 MB)'),
   })
   .strict();

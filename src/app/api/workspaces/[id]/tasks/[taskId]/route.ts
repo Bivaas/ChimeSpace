@@ -57,6 +57,11 @@ export async function PATCH(
         ? sanitizeInput(updates.description)
         : '';
     }
+    if ((updates as { comment?: string }).comment !== undefined) {
+      task.comment = (updates as { comment?: string }).comment
+        ? sanitizeInput((updates as { comment: string }).comment)
+        : '';
+    }
     if (updates.status) task.status = updates.status;
     if (updates.assignedTo !== undefined) {
       if (updates.assignedTo) {
@@ -83,6 +88,7 @@ export async function PATCH(
       _id: task._id.toString(),
       title: task.title,
       description: task.description,
+      comment: task.comment,
       createdBy: task.createdBy.toString(),
       assignedTo: task.assignedTo?.toString() ?? null,
       status: task.status,

@@ -7,3 +7,9 @@
     @apply bg-white text-slate-900 antialiased;
   }
 }
+
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+}
