@@ -79,3 +79,4 @@ export async function authenticateAndAuthorize(
 
   return { user, role: membership.role, memberId: membership.memberId };
 }
+

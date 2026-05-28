@@ -16,7 +16,6 @@ export const createWorkspaceSchema = z
   })
   .strict();
 
-/* ── Invite ───────────────────────────────────────────────── */
 
 export const inviteSchema = z
   .object({

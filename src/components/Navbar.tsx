@@ -8,39 +8,43 @@ export default function Navbar() {
   const { user, logout } = useAuth();
 
   return (
-    <nav className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-40 border-b border-black/5 bg-paper/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2.5 group"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-            <span className="text-sm font-bold text-white">W</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
+            <span className="text-xs font-bold text-white tracking-tight">C</span>
           </div>
-          <span className="text-lg font-semibold text-slate-900">
-            WorkspaceHub
+          <span className="font-display text-base font-semibold text-ink tracking-tight group-hover:text-accent transition-colors">
+            Chimespace
           </span>
         </Link>
 
         {user && (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              {user.avatar && (
+              {user.avatar ? (
                 <Image
                   src={user.avatar}
                   alt={user.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
+                  width={28}
+                  height={28}
+                  className="rounded-full ring-1 ring-black/5"
                 />
+              ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
               )}
-              <span className="hidden text-sm text-slate-700 sm:inline">
+              <span className="hidden text-sm text-ink-muted sm:inline">
                 {user.name}
               </span>
             </div>
             <button
               onClick={logout}
-              className="text-sm text-slate-500 transition-colors hover:text-slate-700"
+              className="text-sm text-ink-faint transition-colors hover:text-ink-muted"
             >
               Logout
             </button>

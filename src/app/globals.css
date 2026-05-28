@@ -3,8 +3,22 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-accent: #4F46E5;
+    --color-ink: #0A0A0B;
+    --color-paper: #FAFAF8;
+  }
+
   body {
-    @apply bg-white text-slate-900 antialiased;
+    background-color: #FAFAF8;
+    color: #0A0A0B;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-body, system-ui, sans-serif);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display, system-ui, sans-serif);
   }
 }
 
@@ -13,3 +27,4 @@
     animation: spin 3s linear infinite;
   }
 }
+

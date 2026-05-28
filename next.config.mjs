@@ -22,22 +22,23 @@ const nextConfig = {
       {
         key: 'Content-Security-Policy',
         value: [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js requires these
-          "style-src 'self' 'unsafe-inline'", // Tailwind inline styles
-          "img-src 'self' https://lh3.googleusercontent.com data: blob:",
-          "font-src 'self' data: https://unpkg.com",
-          "connect-src 'self' https://unpkg.com",
-          "frame-ancestors 'none'",
-          "base-uri 'self'",
-          "form-action 'self'",
-        ].join('; '),
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+        "worker-src 'self' blob:",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' data: https://unpkg.com https://fonts.gstatic.com https://excalidraw.com https://esm.sh",
+        "img-src 'self' https://lh3.googleusercontent.com data: blob:",
+        "connect-src 'self' https://unpkg.com",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+].join('; '),
       },
     ];
 
     return [
       {
-        // Apply to all routes
+        // Apply to all route
         source: '/:path*',
         headers: securityHeaders,
       },
@@ -46,3 +47,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

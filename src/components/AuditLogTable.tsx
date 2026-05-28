@@ -47,7 +47,7 @@ const ACTION_COLORS: Record<string, string> = {
   MEMBER_REMOVED: 'bg-red-100 text-red-700',
   ROLE_CHANGED: 'bg-yellow-100 text-yellow-700',
   OWNERSHIP_TRANSFERRED: 'bg-purple-100 text-purple-700',
-  LOGIN: 'bg-blue-100 text-blue-700',
+  LOGIN: 'bg-accent/10 text-accent',
   LOGOUT: 'bg-slate-100 text-slate-700',
   SESSION_REVOKED: 'bg-orange-100 text-orange-700',
 };

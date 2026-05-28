@@ -59,7 +59,7 @@ export default function WorkspaceOverviewPage() {
   };
 
   if (loading)
-    return <p className="text-slate-500">Loading workspace…</p>;
+    return <p className="text-ink-muted">Loading workspace…</p>;
   if (!ws)
     return (
       <p className="text-red-500">
@@ -71,10 +71,10 @@ export default function WorkspaceOverviewPage() {
     <div>
       {/* Title */}
       <div className="mb-8">
-        <h1 className="mb-2 text-2xl font-bold text-slate-900">
+        <h1 className="mb-2 text-2xl font-bold text-ink">
           {ws.name}
         </h1>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-ink-muted">
           Created on{' '}
           {new Date(ws.createdAt).toLocaleDateString()} · Your role:{' '}
           <strong>{ws.role}</strong>
@@ -82,15 +82,15 @@ export default function WorkspaceOverviewPage() {
       </div>
 
       {/* Members */}
-      <div className="mb-6 rounded-xl bg-slate-50 p-6">
+      <div className="mb-6 rounded-xl rounded-2xl border border-black/5 bg-paper-sunken p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-ink">
             Members ({ws.memberCount})
           </h3>
           {(ws.role === 'OWNER' || ws.role === 'ADMIN') && (
             <button
               onClick={() => setShowInvite(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-lg inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
             >
               + Invite Member
             </button>
@@ -126,9 +126,9 @@ export default function WorkspaceOverviewPage() {
 
       {/* Audit Logs (OWNER + ADMIN) */}
       {(ws.role === 'OWNER' || ws.role === 'ADMIN') && (
-        <div className="mb-6 rounded-xl bg-slate-50 p-6">
+        <div className="mb-6 rounded-xl rounded-2xl border border-black/5 bg-paper-sunken p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">
+            <h3 className="text-lg font-semibold text-ink">
               Audit Logs
             </h3>
             <button

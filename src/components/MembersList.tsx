@@ -19,9 +19,9 @@ interface Props {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  OWNER: 'bg-purple-100 text-purple-700',
-  ADMIN: 'bg-blue-100 text-blue-700',
-  MEMBER: 'bg-slate-100 text-slate-700',
+  OWNER: 'bg-accent/10 text-accent',
+  ADMIN: 'bg-accent/8 text-accent-600',
+  MEMBER: 'bg-paper-sunken text-ink-muted',
 };
 
 export default function MembersList({
@@ -55,7 +55,7 @@ export default function MembersList({
   };
 
   if (loading) {
-    return <p className="text-slate-500">Loading members…</p>;
+    return <p className="text-ink-muted">Loading members…</p>;
   }
 
   return (
@@ -63,7 +63,7 @@ export default function MembersList({
       {members.map((m) => (
         <div
           key={m.memberId}
-          className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"
+          className="flex items-center justify-between rounded-xl border border-black/5 bg-paper-raised p-3"
         >
           <div className="flex items-center gap-3">
             {m.user?.avatar ? (
@@ -75,15 +75,15 @@ export default function MembersList({
                 className="rounded-full"
               />
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200">
-                <span className="text-sm text-slate-500">?</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-paper-sunken">
+                <span className="text-sm text-ink-muted">?</span>
               </div>
             )}
             <div>
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-sm font-medium text-ink">
                 {m.user?.name || 'Unknown'}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-muted">
                 {m.user?.email}
               </p>
             </div>

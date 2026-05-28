@@ -57,8 +57,8 @@ function renderMessageContent(text: string, isMe: boolean) {
           key={i}
           className={`my-1.5 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed ${
             isMe
-              ? 'bg-blue-700/40 text-blue-50'
-              : 'bg-slate-800 text-slate-100'
+              ? 'bg-accent/30 text-white/90'
+              : 'bg-ink/90 text-paper/90'
           }`}
         >
           <code>{code}</code>
@@ -77,8 +77,8 @@ function renderMessageContent(text: string, isMe: boolean) {
                 key={j}
                 className={`rounded px-1 py-0.5 text-[0.8em] ${
                   isMe
-                    ? 'bg-blue-700/40 text-blue-100'
-                    : 'bg-slate-200 text-slate-800'
+                    ? 'bg-accent/30 text-white/90'
+                    : 'bg-ink/10 text-ink'
                 }`}
               >
                 {seg.slice(1, -1)}
@@ -226,7 +226,7 @@ export default function ChatPanel({ workspaceId }: Props) {
               <div
                 className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                   isMe
-                    ? 'rounded-br-md bg-blue-600 text-white'
+                    ? 'rounded-br-md bg-accent text-white'
                     : 'rounded-bl-md bg-slate-100 text-slate-900'
                 }`}
               >
@@ -260,11 +260,11 @@ export default function ChatPanel({ workspaceId }: Props) {
         <div className="relative flex-1">
           <textarea
             ref={textareaRef}
-            placeholder="Type a message… (Shift+Enter for new line)"
+            placeholder="Type a message…"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full resize-none rounded-xl border border-slate-300 px-4 py-2.5 pr-12 text-sm leading-relaxed transition-colors focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="w-full resize-none rounded-xl border border-slate-300 px-4 py-2.5 pr-12 text-sm leading-relaxed transition-colors focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/10"
             maxLength={4000}
             rows={1}
             style={{ minHeight: '42px' }}
@@ -276,7 +276,7 @@ export default function ChatPanel({ workspaceId }: Props) {
         <button
           type="submit"
           disabled={sending || !text.trim()}
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-95 disabled:opacity-40 disabled:shadow-none"
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-accent text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97] disabled:opacity-40 disabled:transform-none disabled:shadow-none"
           title="Send message"
         >
           {sending ? (
@@ -290,9 +290,6 @@ export default function ChatPanel({ workspaceId }: Props) {
           )}
         </button>
       </form>
-      <p className="mt-1.5 text-center text-[10px] text-slate-400">
-        Press <kbd className="rounded border border-slate-200 bg-slate-50 px-1 py-0.5 font-mono text-[10px]">Enter</kbd> to send · <kbd className="rounded border border-slate-200 bg-slate-50 px-1 py-0.5 font-mono text-[10px]">Shift + Enter</kbd> for new line · Use <kbd className="rounded border border-slate-200 bg-slate-50 px-1 py-0.5 font-mono text-[10px]">```</kbd> for code blocks
-      </p>
     </div>
   );
 }

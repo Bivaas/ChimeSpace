@@ -91,7 +91,7 @@ export default function WhiteboardsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-slate-500">
+      <div className="flex items-center justify-center py-16 text-ink-muted">
         Loading whiteboards…
       </div>
     );
@@ -103,13 +103,13 @@ export default function WhiteboardsPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-ink">
           Whiteboards
         </h1>
         {!atLimit && (
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
           >
             + New Whiteboard
           </button>
@@ -118,9 +118,9 @@ export default function WhiteboardsPage() {
 
       {/* Create modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-black/5 bg-paper-raised p-6 shadow-soft-lg">
+            <h2 className="mb-4 text-lg font-semibold text-ink">
               Create Whiteboard
             </h2>
             <input
@@ -129,7 +129,7 @@ export default function WhiteboardsPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-              className="mb-4 w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="mb-4 w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/10"
               maxLength={100}
               autoFocus
             />
@@ -149,7 +149,7 @@ export default function WhiteboardsPage() {
               <button
                 onClick={handleCreate}
                 disabled={creating}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97] disabled:opacity-50 disabled:transform-none"
               >
                 {creating ? 'Creating…' : 'Create'}
               </button>
@@ -182,7 +182,7 @@ export default function WhiteboardsPage() {
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
           >
             Create your first whiteboard
           </button>
@@ -195,12 +195,12 @@ export default function WhiteboardsPage() {
           {boards.map((b) => (
             <div
               key={b._id}
-              className="group relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+              className="group relative rounded-2xl border border-black/5 bg-paper-raised p-6 shadow-sm transition-all hover:shadow-md"
             >
-              <h3 className="mb-2 truncate text-lg font-semibold text-slate-900">
+              <h3 className="mb-2 truncate text-lg font-semibold text-ink">
                 {b.title}
               </h3>
-              <div className="mb-4 space-y-1 text-xs text-slate-500">
+              <div className="mb-4 space-y-1 text-xs text-ink-muted">
                 {b.publishedAt && (
                   <p>
                     Published:{' '}
@@ -227,7 +227,7 @@ export default function WhiteboardsPage() {
                       `/workspace/${workspaceId}/whiteboards/${b._id}`
                     )
                   }
-                  className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                  className="inline-flex items-center rounded-xl bg-accent px-4 py-1.5 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
                 >
                   Open
                 </button>

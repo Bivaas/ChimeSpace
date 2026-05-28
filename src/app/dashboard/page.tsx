@@ -14,9 +14,9 @@ interface WorkspaceItem {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  OWNER: 'bg-purple-50 text-purple-600',
-  ADMIN: 'bg-blue-50 text-blue-600',
-  MEMBER: 'bg-slate-50 text-slate-600',
+  OWNER: 'bg-accent/10 text-accent',
+  ADMIN: 'bg-accent/8 text-accent-600',
+  MEMBER: 'bg-paper-sunken text-ink-muted',
 };
 
 export default function DashboardPage() {
@@ -40,16 +40,16 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink">
             Your Workspaces
           </h1>
-          <p className="mt-1 text-slate-500">
+          <p className="mt-1 text-sm text-ink-muted">
             Manage and access your team workspaces
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
         >
           + Create Workspace
         </button>
@@ -58,13 +58,13 @@ export default function DashboardPage() {
       {/* Body */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-slate-500">Loading workspaces…</p>
+          <p className="text-ink-muted">Loading workspaces…</p>
         </div>
       ) : workspaces.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white py-16 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+        <div className="rounded-2xl border border-black/5 bg-paper-raised py-16 text-center shadow-soft-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-paper-sunken">
             <svg
-              className="h-8 w-8 text-slate-400"
+              className="h-7 w-7 text-ink-faint"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -77,15 +77,15 @@ export default function DashboardPage() {
               />
             </svg>
           </div>
-          <h3 className="mb-2 text-lg font-medium text-slate-900">
+          <h3 className="mb-2 font-display text-base font-semibold text-ink">
             No workspaces yet
           </h3>
-          <p className="mb-6 text-slate-500">
+          <p className="mb-6 text-sm text-ink-muted">
             Create your first workspace to get started.
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
           >
             Create Workspace
           </button>
@@ -96,24 +96,24 @@ export default function DashboardPage() {
             <button
               key={ws._id}
               onClick={() => router.push(`/workspace/${ws._id}`)}
-              className="rounded-xl border border-slate-200 bg-white p-6 text-left transition-all hover:border-blue-300 hover:shadow-md"
+              className="rounded-2xl border border-black/5 bg-paper-raised p-6 text-left shadow-soft-sm transition-all hover:-translate-y-0.5 hover:shadow-soft hover:border-accent/20"
             >
               <div className="mb-3 flex items-start justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                  <span className="font-semibold text-blue-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                  <span className="font-display font-semibold text-accent">
                     {ws.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${ROLE_BADGE[ws.role] ?? ''}`}
+                  className={`rounded-lg px-2 py-1 text-xs font-medium ${ROLE_BADGE[ws.role] ?? ''}`}
                 >
                   {ws.role}
                 </span>
               </div>
-              <h3 className="mb-1 font-semibold text-slate-900">
+              <h3 className="mb-1 font-display font-semibold text-ink">
                 {ws.name}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-ink-faint">
                 Created{' '}
                 {new Date(ws.createdAt).toLocaleDateString()}
               </p>

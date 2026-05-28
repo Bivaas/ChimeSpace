@@ -35,11 +35,11 @@ const STATUS_CONFIG = {
   },
   IN_PROGRESS: {
     label: 'In Progress',
-    bg: 'bg-blue-50/80 border-blue-200',
-    cardBorder: 'border-blue-200 hover:border-blue-300',
-    badge: 'bg-blue-100 text-blue-700',
+    bg: 'bg-accent/5 border-accent/20',
+    cardBorder: 'border-accent/20 hover:border-accent/30',
+    badge: 'bg-accent/10 text-accent',
     icon: (
-      <svg className="h-5 w-5 text-blue-500 animate-spin-slow" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <svg className="h-5 w-5 text-accent animate-spin-slow" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
       </svg>
     ),
@@ -222,7 +222,7 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="group flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-[0.97]"
+          className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
         >
           <span className={`transition-transform duration-200 ${showForm ? 'rotate-45' : 'group-hover:rotate-90'}`}>
             <PlusIcon />
@@ -249,7 +249,7 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
               onChange={(e) =>
                 setForm((p) => ({ ...p, title: e.target.value }))
               }
-              className="mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-colors focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-colors focus:border-accent/40 focus:bg-paper-raised focus:outline-none focus:ring-2 focus:ring-accent/10"
               maxLength={200}
               required
               autoFocus
@@ -260,7 +260,7 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
               onChange={(e) =>
                 setForm((p) => ({ ...p, description: e.target.value }))
               }
-              className="mb-3 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-colors focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="mb-3 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-colors focus:border-accent/40 focus:bg-paper-raised focus:outline-none focus:ring-2 focus:ring-accent/10"
               rows={3}
               maxLength={2000}
             />
@@ -278,7 +278,7 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
               <button
                 type="submit"
                 disabled={creating || !form.title.trim()}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-[0.97] disabled:opacity-50 disabled:shadow-none"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97] disabled:opacity-50 disabled:transform-none disabled:shadow-none"
               >
                 {creating ? (
                   <>
@@ -441,7 +441,7 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
                               status === 'TODO' ? 'IN_PROGRESS' : 'DONE'
                             )
                           }
-                          className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-100 hover:shadow active:scale-[0.97]"
+                          className="inline-flex items-center gap-1 rounded-lg border border-accent/20 bg-accent/8 px-2.5 py-1.5 text-xs font-medium text-accent shadow-soft-sm transition-all hover:border-accent/30 hover:bg-accent/10 hover:shadow-soft active:scale-[0.97]"
                         >
                           {status === 'TODO' ? 'In Progress' : 'Done'}
                           <ArrowRightIcon />

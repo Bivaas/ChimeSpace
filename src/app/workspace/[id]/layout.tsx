@@ -33,63 +33,50 @@ export default function WorkspaceLayout({
   }, [workspaceId]);
 
   const nav = [
-    { href: `/workspace/${workspaceId}`, label: 'Overview', icon: '📋' },
-    {
-      href: `/workspace/${workspaceId}/tasks`,
-      label: 'Tasks',
-      icon: '✅',
-    },
-    {
-      href: `/workspace/${workspaceId}/chat`,
-      label: 'Chat',
-      icon: '💬',
-    },
-    {
-      href: `/workspace/${workspaceId}/whiteboards`,
-      label: 'Whiteboards',
-      icon: '🎨',
-    },
+    { href: `/workspace/${workspaceId}`, label: 'Overview' },
+    { href: `/workspace/${workspaceId}/tasks`, label: 'Tasks' },
+    { href: `/workspace/${workspaceId}/chat`, label: 'Chat' },
+    { href: `/workspace/${workspaceId}/whiteboards`, label: 'Whiteboards' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <Navbar />
       <div className="flex">
         {/* Sidebar */}
-        <aside className="min-h-[calc(100vh-4rem)] w-64 border-r border-slate-200 bg-white p-4">
+        <aside className="min-h-[calc(100vh-3.5rem)] w-60 border-r border-black/5 bg-paper-raised p-4">
           <Link
             href="/dashboard"
-            className="mb-6 flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600"
+            className="mb-6 flex items-center gap-1 text-xs text-ink-faint transition-colors hover:text-accent"
           >
-            ← Back to Dashboard
+            ← Dashboard
           </Link>
 
           {ws && (
             <div className="mb-6">
-              <h2 className="truncate font-semibold text-slate-900">
+              <h2 className="truncate font-display text-sm font-semibold text-ink">
                 {ws.name}
               </h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-ink-faint">
                 {ws.memberCount} member
                 {ws.memberCount !== 1 ? 's' : ''}
               </p>
             </div>
           )}
 
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {nav.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  className={`flex items-center rounded-xl px-3 py-2 text-sm transition-colors ${
                     active
-                      ? 'bg-blue-50 font-medium text-blue-700'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-accent/8 font-medium text-accent'
+                      : 'text-ink-muted hover:bg-paper-sunken hover:text-ink'
                   }`}
                 >
-                  <span>{item.icon}</span>
                   {item.label}
                 </Link>
               );
