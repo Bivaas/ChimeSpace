@@ -1,7 +1,5 @@
 'use client';
 
-import '@excalidraw/excalidraw/index.css';
-
 import {
   useCallback,
   useEffect,
@@ -264,29 +262,29 @@ export default function WhiteboardEditor({
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-black/5 bg-paper-raised px-4 py-2">
+      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center gap-4">
-          <h2 className="truncate font-display text-base font-semibold text-ink">
+          <h2 className="truncate text-lg font-semibold text-slate-900">
             {title}
           </h2>
 
           <button
             onClick={publish}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3 py-1.5 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
+            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-95"
           >
             Publish
           </button>
 
           {draftSaving && (
-            <span className="text-xs text-ink-faint">Saving draft…</span>
+            <span className="text-xs text-slate-400">Saving draft…</span>
           )}
           {publishStatus && (
-            <span className="text-sm font-medium text-emerald-600">
+            <span className="text-sm font-medium text-green-600">
               {publishStatus}
             </span>
           )}
           {!publishStatus && lastPublished && (
-            <span className="text-xs text-ink-faint">
+            <span className="text-xs text-slate-400">
               Published:{' '}
               {new Date(lastPublished).toLocaleTimeString()}
             </span>
@@ -294,13 +292,13 @@ export default function WhiteboardEditor({
         </div>
 
         {/* View toggle */}
-        <div className="flex overflow-hidden rounded-xl border border-black/8">
+        <div className="flex overflow-hidden rounded-lg border border-slate-200">
           <button
             onClick={() => switchView('draft')}
             className={`px-3 py-1.5 text-sm font-medium transition-colors ${
               viewMode === 'draft'
-                ? 'bg-accent/8 text-accent'
-                : 'bg-paper-raised text-ink-muted hover:bg-paper-sunken'
+                ? 'bg-blue-50 text-blue-700'
+                : 'bg-white text-slate-500 hover:bg-slate-50'
             }`}
           >
             Draft
@@ -309,8 +307,8 @@ export default function WhiteboardEditor({
             onClick={() => switchView('published')}
             className={`px-3 py-1.5 text-sm font-medium transition-colors ${
               viewMode === 'published'
-                ? 'bg-accent/8 text-accent'
-                : 'bg-paper-raised text-ink-muted hover:bg-paper-sunken'
+                ? 'bg-blue-50 text-blue-700'
+                : 'bg-white text-slate-500 hover:bg-slate-50'
             }`}
           >
             Published
@@ -319,12 +317,12 @@ export default function WhiteboardEditor({
       </div>
 
       {/* Auto-publish info bar */}
-      <div className="flex items-center justify-between border-b border-black/5 bg-paper px-4 py-1">
-        <p className="text-[11px] text-ink-faint">
-          draft autosaved every 2s · auto-publishes every 30s
+      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-1">
+        <p className="text-[11px] text-slate-400">
+          draft autosaved every 2s · Auto-publishes every 30s
         </p>
         {viewMode === 'published' && (
-          <span className="rounded-lg bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+          <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
             View-only (published snapshot)
           </span>
         )}

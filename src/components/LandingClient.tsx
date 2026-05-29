@@ -4,12 +4,13 @@ import Link from 'next/link';
 import {
   motion,
   useReducedMotion,
+  AnimatePresence,
   useScroll,
   useTransform,
   useMotionValue,
   useSpring,
 } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Shield, Users, CircleCheck, MessageSquare, Target, TrendingUp } from 'lucide-react';
 import Reveal from '@/components/motion/Reveal';
 
@@ -347,16 +348,110 @@ function HowItWorks() {
 }
 
 /* ── Preview card (tilt on hover) ────────────────────────────── */
+/* ── Interactive preview panels ──────────────────────────────── */
+
+const PREVIEW_TABS = ['Overview', 'Tasks', 'Chat', 'Whiteboards'] as const;
+type PreviewTab = (typeof PREVIEW_TABS)[number];
+
+function PreviewPanel({ tab }: { tab: PreviewTab }) {
+  if (tab === 'Overview') {
+    return (
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Open tasks', value: '12' },
+          { label: 'Members', value: '6' },
+          { label: 'Whiteboards', value: '3' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl border border-black/5 p-4">
+            <div className="font-display text-2xl font-bold text-ink">{s.value}</div>
+            <div className="mt-1 text-[11px] text-ink-faint">{s.label}</div>
+          </div>
+        ))}
+        <div className="col-span-3 mt-1 rounded-xl border border-black/5 p-4">
+          <div className="mb-3 h-3 w-28 rounded bg-ink/8" />
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="mb-2 flex items-center gap-2">
+              <div className="h-5 w-5 rounded-full bg-accent/15" />
+              <div className="h-2.5 flex-1 rounded bg-ink/5" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tab === 'Tasks') {
+    return (
+      <div className="grid grid-cols-3 gap-3">
+        {(['To Do', 'In Progress', 'Done'] as const).map((col, ci) => (
+          <div key={col} className="rounded-xl border border-black/5 p-3">
+            <div
+              className={`mb-3 inline-block rounded px-2 py-0.5 text-[10px] font-medium ${
+                ci === 1
+                  ? 'bg-accent/10 text-accent'
+                  : ci === 2
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-ink/5 text-ink-faint'
+              }`}
+            >
+              {col}
+            </div>
+            {Array.from({ length: ci === 0 ? 2 : ci === 1 ? 1 : 2 }).map((_, ti) => (
+              <div key={ti} className="mb-2 h-8 rounded-lg bg-ink/4" />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (tab === 'Chat') {
+    return (
+      <div className="space-y-3">
+        {[
+          { me: false, w: 'w-3/4' },
+          { me: true, w: 'w-2/3' },
+          { me: false, w: 'w-1/2' },
+          { me: true, w: 'w-3/5' },
+        ].map((m, i) => (
+          <div key={i} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
+            <div
+              className={`flex items-center gap-2 rounded-2xl px-3 py-2 ${m.w} ${
+                m.me ? 'bg-accent/15' : 'border border-black/5 bg-paper-sunken'
+              }`}
+            >
+              {!m.me && <div className="h-5 w-5 shrink-0 rounded-full bg-ink/10" />}
+              <div className="h-2.5 flex-1 rounded bg-ink/10" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Whiteboards
+  return (
+    <div className="relative h-44 rounded-xl border border-black/5 bg-paper-sunken">
+      <div className="absolute left-6 top-6 h-16 w-24 rounded-lg border-2 border-accent/30" />
+      <div className="absolute left-32 top-12 h-12 w-12 rounded-full border-2 border-emerald-400/40" />
+      <div className="absolute right-8 top-8 h-20 w-28 rounded-lg border-2 border-ink/15" />
+      <svg className="absolute inset-0 h-full w-full" fill="none">
+        <path d="M120 60 L200 70" stroke="currentColor" className="text-accent/30" strokeWidth="2" strokeDasharray="4 3" />
+      </svg>
+    </div>
+  );
+}
 
 function PreviewCard() {
   const shouldReduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState<PreviewTab>('Overview');
 
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 20 });
-  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 20 });
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [6, -6]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-6, 6]), { stiffness: 200, damping: 20 });
 
   function handleMouse(e: React.MouseEvent<HTMLDivElement>) {
     if (!ref.current || shouldReduce) return;
@@ -377,7 +472,7 @@ function PreviewCard() {
           See it in action
         </h2>
         <p className="mb-12 text-ink-muted">
-          From task boards to whiteboards — everything in one place.
+          Click through the workspace — tasks, chat, and whiteboards in one place.
         </p>
       </Reveal>
       <Reveal className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -386,55 +481,52 @@ function PreviewCard() {
           onMouseMove={handleMouse}
           onMouseLeave={resetTilt}
           style={shouldReduce ? {} : { rotateX, rotateY, transformStyle: 'preserve-3d' }}
-          className="rounded-2xl border border-black/5 bg-paper-raised shadow-soft-lg overflow-hidden"
+          className="overflow-hidden rounded-2xl border border-black/5 bg-paper-raised shadow-soft-lg"
         >
           {/* Mock browser chrome */}
           <div className="flex h-10 items-center gap-1.5 border-b border-black/5 bg-paper-sunken px-4">
             <div className="h-2.5 w-2.5 rounded-full bg-red-300/60" />
             <div className="h-2.5 w-2.5 rounded-full bg-yellow-300/60" />
             <div className="h-2.5 w-2.5 rounded-full bg-green-300/60" />
-            <span className="ml-4 text-xs text-ink-faint">Chimespace — Dashboard</span>
+            <span className="ml-4 text-xs text-ink-faint">Chimespace — {active}</span>
           </div>
           {/* Mock app UI */}
-          <div className="flex min-h-64 gap-0">
+          <div className="flex min-h-72">
             <div className="w-44 border-r border-black/5 bg-paper-raised p-4">
               <div className="mb-4 h-4 w-20 rounded bg-ink/5" />
-              {['Overview', 'Tasks', 'Chat', 'Whiteboards'].map((item) => (
-                <div
+              {PREVIEW_TABS.map((item) => (
+                <button
                   key={item}
-                  className={`mb-1 flex h-7 items-center rounded-lg px-2 ${item === 'Tasks' ? 'bg-accent/8' : ''}`}
+                  onClick={() => setActive(item)}
+                  className={`relative mb-1 flex h-8 w-full items-center rounded-lg px-2 text-left transition-colors ${
+                    active === item ? 'bg-accent/8' : 'hover:bg-ink/4'
+                  }`}
                 >
-                  <span className={`text-xs ${item === 'Tasks' ? 'font-medium text-accent' : 'text-ink-faint'}`}>
+                  {active === item && (
+                    <motion.span
+                      layoutId="preview-active"
+                      className="absolute left-0 top-1.5 h-5 w-0.5 rounded-full bg-accent"
+                      transition={{ duration: shouldReduce ? 0 : 0.2 }}
+                    />
+                  )}
+                  <span className={`text-xs ${active === item ? 'font-medium text-accent' : 'text-ink-faint'}`}>
                     {item}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
             <div className="flex-1 p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="h-5 w-24 rounded bg-ink/8" />
-                <div className="h-7 w-20 rounded-xl bg-accent/20" />
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {(['To Do', 'In Progress', 'Done'] as const).map((col, ci) => (
-                  <div key={col} className="rounded-xl border border-black/5 p-3">
-                    <div
-                      className={`mb-3 inline-block rounded px-2 py-0.5 text-[10px] font-medium ${
-                        ci === 1
-                          ? 'bg-accent/10 text-accent'
-                          : ci === 2
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-ink/5 text-ink-faint'
-                      }`}
-                    >
-                      {col}
-                    </div>
-                    {Array.from({ length: ci === 0 ? 2 : ci === 1 ? 1 : 2 }).map((_, ti) => (
-                      <div key={ti} className="mb-2 h-8 rounded-lg bg-ink/4" />
-                    ))}
-                  </div>
-                ))}
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: shouldReduce ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: shouldReduce ? 0 : -8 }}
+                  transition={{ duration: shouldReduce ? 0 : 0.2 }}
+                >
+                  <PreviewPanel tab={active} />
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </motion.div>

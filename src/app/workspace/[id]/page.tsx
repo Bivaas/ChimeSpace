@@ -8,6 +8,7 @@ import MembersList from '@/components/MembersList';
 import InviteModal from '@/components/InviteModal';
 import TransferOwnershipModal from '@/components/TransferOwnershipModal';
 import AuditLogTable from '@/components/AuditLogTable';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 interface WorkspaceDetails {
   _id: string;
@@ -31,6 +32,7 @@ export default function WorkspaceOverviewPage() {
   const [showAuditLogs, setShowAuditLogs] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [deleting, setDeleting] = useState(false);
+   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -43,18 +45,15 @@ export default function WorkspaceOverviewPage() {
   }, [workspaceId]);
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this workspace? This action cannot be undone.'
-      )
-    )
-      return;
-
+    setShowDeleteConfirm(false);
     setDeleting(true);
     const res = await apiFetch(`/api/workspaces/${workspaceId}`, {
       method: 'DELETE',
     });
-    if (res.success) router.push('/dashboard');
+    if (res.success) {
+      router.push('/dashboard');
+      return;
+    }
     setDeleting(false);
   };
 
@@ -155,7 +154,7 @@ export default function WorkspaceOverviewPage() {
             messages, and member associations.
           </p>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={deleting}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >

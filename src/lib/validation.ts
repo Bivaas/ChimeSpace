@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-/* ── Workspace ────────────────────────────────────────────── */
 
 export const createWorkspaceSchema = z
   .object({
@@ -29,7 +28,6 @@ export const inviteSchema = z
   })
   .strict();
 
-/* ── Task ─────────────────────────────────────────────────── */
 
 export const createTaskSchema = z
   .object({

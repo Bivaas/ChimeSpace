@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/client/api';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 /* ── Types ─────────────────────────────────────────────────── */
 
@@ -125,6 +126,8 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
   const [creating, setCreating] = useState(false);
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<Task | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -172,13 +175,19 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
     }
   };
 
-  const deleteTask = async (id: string) => {
-    if (!confirm('Delete this task?')) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete._id;
+    setDeleting(true);
     const res = await apiFetch(
       `/api/workspaces/${workspaceId}/tasks/${id}`,
       { method: 'DELETE' }
     );
-    if (res.success) setTasks((prev) => prev.filter((t) => t._id !== id));
+    if (res.success) {
+      setTasks((prev) => prev.filter((t) => t._id !== id));
+    }
+    setDeleting(false);
+    setPendingDelete(null);
   };
 
   const saveComment = async (id: string) => {
@@ -449,7 +458,7 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
                       )}
                       {(userRole === 'OWNER' || userRole === 'ADMIN') && (
                         <button
-                          onClick={() => deleteTask(task._id)}
+                          onClick={() => setPendingDelete(task)}
                           className="ml-auto flex items-center gap-1 rounded-lg border border-transparent px-2 py-1.5 text-xs text-red-400 opacity-0 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 active:scale-[0.97]"
                         >
                           <TrashIcon />
@@ -470,6 +479,21 @@ export default function TaskBoard({ workspaceId, userRole }: Props) {
           );
         })}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete task"
+        message={
+          pendingDelete
+            ? `Delete "${pendingDelete.title}"? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
