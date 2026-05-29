@@ -181,8 +181,19 @@ export default function WorkspaceOverviewPage() {
             // Reload workspace details to reflect new role
             window.location.reload();
           }}
-        />
+       />
       )}
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete workspace"
+        message={`Delete "${ws.name}"? This permanently removes all tasks, messages, whiteboards, and member associations. This cannot be undone.`}
+        confirmLabel="Delete workspace"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

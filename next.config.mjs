@@ -8,6 +8,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
     ],
   },
   headers: async () => {
@@ -27,8 +31,8 @@ const nextConfig = {
         "worker-src 'self' blob:",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' data: https://unpkg.com https://fonts.gstatic.com https://excalidraw.com https://esm.sh",
-        "img-src 'self' https://lh3.googleusercontent.com data: blob:",
-        "connect-src 'self' https://unpkg.com",
+        "img-src 'self' https://lh3.googleusercontent.com https://res.cloudinary.com data: blob:",
+        "connect-src 'self' https://unpkg.com https://api.cloudinary.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",

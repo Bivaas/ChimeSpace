@@ -28,7 +28,7 @@ export async function authenticate(
   }
 
   // General rate limit per user
-  const rl = rateLimiter.check(
+  const rl = await rateLimiter.check(
     `api:${user.userId}`,
     RATE_LIMITS.API_GENERAL.limit,
     RATE_LIMITS.API_GENERAL.windowMs

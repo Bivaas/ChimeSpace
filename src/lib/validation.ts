@@ -140,3 +140,25 @@ export const updateWhiteboardDraftSchema = z
       .max(MAX_DRAFT_BYTES, 'Draft payload too large (max 5 MB)'),
   })
   .strict();
+
+
+/* Gallery Image */
+
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+export const saveGalleryImageSchema = z
+  .object({
+    publicId: z.string().min(1).max(300),
+    url: z
+      .string()
+      .url()
+      .refine((u) => u.startsWith('https://res.cloudinary.com/'), {
+        message: 'URL must be a Cloudinary asset',
+      }),
+    width:  z.number().int().positive().max(20000),
+    height: z.number().int().positive().max(20000),
+    bytes:  z.number().int().positive().max(MAX_IMAGE_BYTES),
+    format: z.enum(['jpg', 'jpeg', 'png', 'webp', 'gif']),
+    title:  z.string().trim().max(200).default(''),
+  })
+  .strict();

@@ -1,43 +1,18 @@
 /**
- * In-memory sliding-window rate limiter.
+ * Rate limiter with two backends:
+ *   - Upstash Redis (production / multi-instance) — used when UPSTASH_REDIS_REST_*
+ *     env vars are set.
+ *   - In-memory sliding window (local dev / single-instance fallback).
  *
- * IMPORTANT: Works for single-instance deployments only.
- * Replace the store with a Redis adapter for multi-instance / serverless.
- * 
- * TODO: Redis Rate Limiter Integration
- * 
- * For production multi-instance deployments:
- * 
- * 1. Install ioredis: npm install ioredis
- * 2. Create RedisRateLimiter class implementing same interface
- * 3. Use MULTI/EXEC for atomic increment + TTL
- * 4. Example implementation:
- * 
- *    async check(key: string, limit: number, windowMs: number) {
- *      const now = Date.now();
- *      const windowKey = `ratelimit:${key}:${Math.floor(now / windowMs)}`;
- *      
- *      const multi = redis.multi();
- *      multi.incr(windowKey);
- *      multi.pttl(windowKey);
- *      const [[, count], [, ttl]] = await multi.exec();
- *      
- *      if (ttl === -1) await redis.pexpire(windowKey, windowMs);
- *      
- *      return {
- *        allowed: count <= limit,
- *        remaining: Math.max(0, limit - count),
- *        retryAfterMs: count > limit ? ttl : 0,
- *      };
- *    }
- * 
- * 5. Use env variable REDIS_URL to conditionally select implementation
+ * Public API is synchronous-looking (returns a Promise-or-value union via
+ * the `RateLimitResult | Promise<RateLimitResult>` type) so callers can `await`
+ * uniformly. All existing callers already do `const rl = await rateLimiter.check(...)`
+ * or treat the result as a value — since we always return a Promise from `check()`,
+ * `await` works in both cases.
  */
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
+import { Ratelimit } from '@upstash/ratelimit';
+import { getRedis, hasRedis } from '@/lib/redis';
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -45,24 +20,35 @@ export interface RateLimitResult {
   retryAfterMs: number;
 }
 
-class RateLimiter {
-  private store = new Map<string, RateLimitEntry>();
+/* ── Preset configurations ────────────────────────────────── */
+
+export const RATE_LIMITS = {
+  /** 5 messages per 10 seconds */
+  CHAT_MESSAGE:     { limit: 5,  windowMs: 10_000 },
+  /** 60 requests per minute */
+  API_GENERAL:      { limit: 60, windowMs: 60_000 },
+  /** 10 attempts per 5 minutes */
+  AUTH_ATTEMPT:     { limit: 10, windowMs: 300_000 },
+  /** 5 workspaces per hour */
+  WORKSPACE_CREATE: { limit: 5,  windowMs: 3_600_000 },
+  /** 20 image uploads per minute (each one costs a Cloudinary call) */
+  GALLERY_UPLOAD:   { limit: 20, windowMs: 60_000 },
+} as const;
+
+/* ── In-memory backend (fallback) ─────────────────────────── */
+
+interface MemEntry { count: number; resetAt: number }
+
+class MemoryLimiter {
+  private store = new Map<string, MemEntry>();
   private cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
-    // Periodically evict expired entries to avoid unbounded memory growth
     if (typeof setInterval !== 'undefined') {
       this.cleanupTimer = setInterval(() => this.cleanup(), 60_000);
     }
   }
 
-  /**
-   * Check whether `key` is within rate limits.
-   *
-   * @param key     Unique identifier (e.g. `chat:<userId>:<wsId>`)
-   * @param limit   Max allowed requests in the window
-   * @param windowMs  Window duration in milliseconds
-   */
   check(key: string, limit: number, windowMs: number): RateLimitResult {
     const now = Date.now();
     const entry = this.store.get(key);
@@ -71,24 +57,14 @@ class RateLimiter {
       this.store.set(key, { count: 1, resetAt: now + windowMs });
       return { allowed: true, remaining: limit - 1, retryAfterMs: 0 };
     }
-
     if (entry.count >= limit) {
-      return {
-        allowed: false,
-        remaining: 0,
-        retryAfterMs: entry.resetAt - now,
-      };
+      return { allowed: false, remaining: 0, retryAfterMs: entry.resetAt - now };
     }
-
     entry.count += 1;
-    return {
-      allowed: true,
-      remaining: limit - entry.count,
-      retryAfterMs: 0,
-    };
+    return { allowed: true, remaining: limit - entry.count, retryAfterMs: 0 };
   }
 
-  private cleanup(): void {
+  private cleanup() {
     const now = Date.now();
     const keys = Array.from(this.store.keys());
     for (const key of keys) {
@@ -97,34 +73,76 @@ class RateLimiter {
     }
   }
 
-  destroy(): void {
+  destroy() {
     if (this.cleanupTimer) clearInterval(this.cleanupTimer);
     this.store.clear();
   }
 }
 
-/* ── Singleton – survives hot-reload in dev ───────────────── */
+/* ── Upstash backend ──────────────────────────────────────── */
+
+/**
+ * Cache of Ratelimit instances per (limit, windowMs) tuple.
+ * @upstash/ratelimit is configured per-window-config, not per-request.
+ */
+const upstashCache = new Map<string, Ratelimit>();
+
+function getUpstashLimiter(limit: number, windowMs: number): Ratelimit | null {
+  const redis = getRedis();
+  if (!redis) return null;
+  const cacheKey = `${limit}:${windowMs}`;
+  let rl = upstashCache.get(cacheKey);
+  if (!rl) {
+    rl = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(limit, `${windowMs} ms`),
+      analytics: false,
+      prefix: 'chimespace:rl',
+    });
+    upstashCache.set(cacheKey, rl);
+  }
+  return rl;
+}
+
+/* ── Unified facade ───────────────────────────────────────── */
+
+class HybridLimiter {
+  private memory = new MemoryLimiter();
+
+  async check(
+    key: string,
+    limit: number,
+    windowMs: number
+  ): Promise<RateLimitResult> {
+    if (hasRedis()) {
+      const upstash = getUpstashLimiter(limit, windowMs);
+      if (upstash) {
+        try {
+          const r = await upstash.limit(key);
+          return {
+            allowed: r.success,
+            remaining: r.remaining,
+            retryAfterMs: r.success ? 0 : Math.max(0, r.reset - Date.now()),
+          };
+        } catch (err) {
+          // Network blip → fail open via in-memory fallback rather than 500-ing
+          console.error('Upstash rate-limit error, falling back to memory:', err);
+        }
+      }
+    }
+    return this.memory.check(key, limit, windowMs);
+  }
+}
+
+/* ── Singleton ────────────────────────────────────────────── */
 
 const globalWithRl = globalThis as typeof globalThis & {
-  rateLimiter?: RateLimiter;
+  rateLimiter?: HybridLimiter;
 };
 
-export const rateLimiter: RateLimiter =
-  globalWithRl.rateLimiter ?? new RateLimiter();
+export const rateLimiter: HybridLimiter =
+  globalWithRl.rateLimiter ?? new HybridLimiter();
 
 if (process.env.NODE_ENV !== 'production') {
   globalWithRl.rateLimiter = rateLimiter;
 }
-
-/* ── Preset configurations ────────────────────────────────── */
-
-export const RATE_LIMITS = {
-  /** 5 messages per 10 seconds */
-  CHAT_MESSAGE: { limit: 5, windowMs: 10_000 },
-  /** 60 requests per minute */
-  API_GENERAL: { limit: 60, windowMs: 60_000 },
-  /** 10 attempts per 5 minutes */
-  AUTH_ATTEMPT: { limit: 10, windowMs: 300_000 },
-  /** 5 workspaces per hour */
-  WORKSPACE_CREATE: { limit: 5, windowMs: 3_600_000 },
-} as const;

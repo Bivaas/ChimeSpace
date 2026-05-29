@@ -11,6 +11,9 @@
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.0",
     "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
+    "cloudinary": "^2.10.0",
     "framer-motion": "^12.40.0",
     "jose": "^5.9.6",
     "lucide-react": "^1.17.0",

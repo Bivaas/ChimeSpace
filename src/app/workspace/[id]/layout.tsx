@@ -37,6 +37,7 @@ export default function WorkspaceLayout({
     { href: `/workspace/${workspaceId}/tasks`, label: 'Tasks' },
     { href: `/workspace/${workspaceId}/chat`, label: 'Chat' },
     { href: `/workspace/${workspaceId}/whiteboards`, label: 'Whiteboards' },
+    { href: `/workspace/${workspaceId}/gallery`, label: 'Gallery' },
   ];
 
   return (

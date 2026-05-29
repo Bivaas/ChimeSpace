@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { apiFetch } from '@/lib/client/api';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 interface Member {
   memberId: string;
@@ -31,6 +32,8 @@ export default function MembersList({
 }: Props) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingRemove, setPendingRemove] = useState<{ userId: string; name: string } | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   const fetchMembers = useCallback(async () => {
     const result = await apiFetch<{ members: Member[]; pagination: { total: number } }>(
@@ -44,14 +47,16 @@ export default function MembersList({
     fetchMembers();
   }, [fetchMembers, refreshTrigger]);
 
-  const removeMember = async (userId: string) => {
-    if (!confirm('Remove this member from the workspace?')) return;
-
+  const confirmRemove = async () => {
+    if (!pendingRemove) return;
+    setRemoving(true);
     const result = await apiFetch(
-      `/api/workspaces/${workspaceId}/members?userId=${userId}`,
+      `/api/workspaces/${workspaceId}/members?userId=${pendingRemove.userId}`,
       { method: 'DELETE' }
     );
     if (result.success) fetchMembers();
+    setRemoving(false);
+    setPendingRemove(null);
   };
 
   if (loading) {
@@ -99,15 +104,30 @@ export default function MembersList({
             {((currentUserRole === 'OWNER' && m.role !== 'OWNER') ||
               (currentUserRole === 'ADMIN' && m.role === 'MEMBER')) && (
               <button
-                onClick={() => removeMember(m.userId)}
+               onClick={() => setPendingRemove({ userId: m.userId, name: m.user?.name || 'this member' })}
                 className="ml-2 text-xs text-red-500 hover:text-red-700"
               >
-                Remove
+              Remove
               </button>
             )}
           </div>
         </div>
       ))}
+
+      <ConfirmDialog
+        open={pendingRemove !== null}
+        title="Remove member"
+        message={
+          pendingRemove
+            ? `Remove ${pendingRemove.name} from this workspace?`
+            : ''
+        }
+        confirmLabel="Remove"
+        destructive
+        loading={removing}
+        onConfirm={confirmRemove}
+        onCancel={() => setPendingRemove(null)}
+      />
     </div>
   );
 }

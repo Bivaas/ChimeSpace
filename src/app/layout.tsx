@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 // @ts-ignore - allow side-effect import of global CSS in Next.js app directory
-import './globals.css';
-import '@excalidraw/excalidraw/index.css';
-const inter = Inter({ subsets: ['latin'] });
+import './globals.css';const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Chimespace — Secure Team Collaboration',

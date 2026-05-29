@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const ip = forwardedFor?.split(',')[0]?.trim();
   const userAgent = request.headers.get('user-agent')?.slice(0, 120) || 'unknown';
   const rateLimitKey = ip ? `oauth:${ip}` : `oauth:ua:${userAgent}`;
-  const rl = rateLimiter.check(
+  const rl = await rateLimiter.check(
     rateLimitKey,
     RATE_LIMITS.AUTH_ATTEMPT.limit,
     RATE_LIMITS.AUTH_ATTEMPT.windowMs

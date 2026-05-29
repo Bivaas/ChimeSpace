@@ -114,7 +114,7 @@ export async function POST(
     if (auth instanceof NextResponse) return auth;
 
     // Chat-specific rate limit
-    const rl = rateLimiter.check(
+    const rl = await rateLimiter.check(
       `chat:${auth.user.userId}:${params.id}`,
       RATE_LIMITS.CHAT_MESSAGE.limit,
       RATE_LIMITS.CHAT_MESSAGE.windowMs

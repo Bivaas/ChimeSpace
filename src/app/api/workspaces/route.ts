@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const user = authResult;
 
     // Rate limit workspace creation
-    const rl = rateLimiter.check(
+    const rl = await rateLimiter.check(
       `ws_create:${user.userId}`,
       RATE_LIMITS.WORKSPACE_CREATE.limit,
       RATE_LIMITS.WORKSPACE_CREATE.windowMs
