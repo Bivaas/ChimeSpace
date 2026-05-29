@@ -1,5 +1,5 @@
 'use client';
-
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/client/api';
@@ -28,6 +28,8 @@ export default function WhiteboardsPage() {
   const [newTitle, setNewTitle] = useState('');
   const [role, setRole] = useState<string>('MEMBER');
   const [error, setError] = useState('');
+  const [pendingBoard, setPendingBoard] = useState<{ id: string; title: string } | null>(null);
+  const [deletingBoard, setDeletingBoard] = useState(false);
 
   const fetchBoards = useCallback(async () => {
     const res = await apiFetch<{
@@ -76,17 +78,16 @@ export default function WhiteboardsPage() {
     setCreating(false);
   };
 
-  const handleDelete = async (boardId: string, boardTitle: string) => {
-    if (
-      !confirm(`Delete "${boardTitle}"? This cannot be undone.`)
-    )
-      return;
-
+ const confirmDeleteBoard = async () => {
+    if (!pendingBoard) return;
+    setDeletingBoard(true);
     const res = await apiFetch(
-      `/api/workspaces/${workspaceId}/whiteboards/${boardId}`,
+      `/api/workspaces/${workspaceId}/whiteboards/${pendingBoard.id}`,
       { method: 'DELETE' }
     );
     if (res.success) fetchBoards();
+    setDeletingBoard(false);
+    setPendingBoard(null);
   };
 
   if (loading) {
@@ -233,12 +234,26 @@ export default function WhiteboardsPage() {
                 </button>
                 {canDelete && (
                   <button
-                    onClick={() => handleDelete(b._id, b.title)}
+                        onClick={() => setPendingBoard({ id: b._id, title: b.title })}
                     className="rounded-lg px-3 py-1.5 text-sm text-red-600 opacity-0 transition-opacity hover:bg-red-50 group-hover:opacity-100"
                   >
                     Delete
                   </button>
                 )}
+                <ConfirmDialog
+        open={pendingBoard !== null}
+        title="Delete whiteboard"
+        message={
+          pendingBoard
+            ? `Delete "${pendingBoard.title}"? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deletingBoard}
+        onConfirm={confirmDeleteBoard}
+        onCancel={() => setPendingBoard(null)}
+      />
               </div>
 
               {/* Slot indicator */}

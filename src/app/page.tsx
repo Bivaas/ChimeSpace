@@ -3,14 +3,14 @@ import type { Metadata } from 'next';
 import LandingClient from '@/components/LandingClient';
 
 export const metadata: Metadata = {
-  title: 'Chimespace — Secure Team Collaboration Platform',
+  // Homepage uses the default 'Chimespace' title from root layout — no template suffix.
+  // Leave title undefined here so the root default kicks in.
   description:
-    'Manage your team with secure workspaces, real-time task management, and team communication. Built with security-first design.',
+    'Tasks, chat, gallery, and whiteboards in one secure workspace. Built for small teams that want to ship without getting buried in tools.',
   openGraph: {
-    title: 'Chimespace — Secure Team Collaboration Platform',
+    title: 'Chimespace',
     description:
-      'Manage your team with secure workspaces, real-time task management, and team communication.',
-    type: 'website',
+      'Tasks, chat, gallery, and whiteboards in one secure workspace.',
   },
 };
 

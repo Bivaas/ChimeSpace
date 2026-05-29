@@ -11,7 +11,7 @@ import {
   useSpring,
 } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { Shield, Users, CircleCheck, MessageSquare, Target, TrendingUp } from 'lucide-react';
+import { Shield, Users, CircleCheck, MessageSquare, PenTool, Image as ImageIcon } from 'lucide-react';
 import Reveal from '@/components/motion/Reveal';
 
 /* ── Types ───────────────────────────────────────────────────── */
@@ -43,15 +43,15 @@ const features = [
     title: 'Team Chat',
     description: 'Communicate with your team directly within each workspace. Keep discussions focused.',
   },
-  {
-    Icon: Target,
-    title: 'Role-Based Access',
-    description: 'Fine-grained permissions with Owner, Admin, and Member roles. Control who can do what.',
+ {
+    Icon: PenTool,
+    title: 'Visual Whiteboards',
+    description: 'Sketch ideas, diagram systems, plan together. Drafts autosave, publish when ready.',
   },
   {
-    Icon: TrendingUp,
-    title: 'Built for Scale',
-    description: 'Designed for growth. Start free and scale as your team expands.',
+    Icon: ImageIcon,
+    title: 'Shared Gallery',
+    description: 'Upload reference images, mockups, and screenshots. Organized per workspace.',
   },
 ];
 
@@ -75,17 +75,41 @@ const steps = [
 
 /* ── StickyNav ───────────────────────────────────────────────── */
 
+function ChimeMark({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <circle cx="12" cy="14" r="2" fill="currentColor" />
+      <path
+        d="M 8 14 A 4 4 0 0 1 16 14"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 5 14 A 7 7 0 0 1 19 14"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+    </svg>
+  );
+}
+
 function NavContent({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
-          <span className="text-xs font-bold text-white tracking-tight">C</span>
-        </div>
+      <Link
+        href="/"
+        className="group flex items-center gap-2 transition-opacity hover:opacity-80"
+      >
+        <ChimeMark className="h-6 w-6 text-accent" />
         <span className="font-display text-base font-semibold text-ink tracking-tight">
           Chimespace
         </span>
-      </div>
+      </Link>
       {isLoggedIn ? (
         <Link
           href="/dashboard"
@@ -197,8 +221,8 @@ function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
           <span className="text-accent">Ship faster.</span>
         </h1>
         <p className="mx-auto mb-10 max-w-2xl text-lg text-ink-muted sm:text-xl">
-          Chimespace brings your team together with secure workspaces, task management,
-          real-time communication and creative spaces.
+         Workspaces, tasks, chat, image galleries, and whiteboards —
+          everything your team needs to ship, in one secure place.
         </p>
         {ctaBlock}
       </section>
@@ -350,29 +374,38 @@ function HowItWorks() {
 /* ── Preview card (tilt on hover) ────────────────────────────── */
 /* ── Interactive preview panels ──────────────────────────────── */
 
-const PREVIEW_TABS = ['Overview', 'Tasks', 'Chat', 'Whiteboards'] as const;
+const PREVIEW_TABS = ['Overview', 'Tasks', 'Chat', 'Gallery', 'Whiteboards'] as const;
 type PreviewTab = (typeof PREVIEW_TABS)[number];
 
 function PreviewPanel({ tab }: { tab: PreviewTab }) {
   if (tab === 'Overview') {
+    const stats = [
+      { label: 'Open tasks', value: '12' },
+      { label: 'Members', value: '6' },
+      { label: 'Images', value: '24' },
+    ];
+    const activity = [
+      { who: 'Alex',  what: 'created task “Review pricing page”', when: '2m' },
+      { who: 'Sarah', what: 'commented in #general',              when: '14m' },
+      { who: 'Mike',  what: 'published a whiteboard',             when: '1h' },
+    ];
     return (
       <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Open tasks', value: '12' },
-          { label: 'Members', value: '6' },
-          { label: 'Whiteboards', value: '3' },
-        ].map((s) => (
+        {stats.map((s) => (
           <div key={s.label} className="rounded-xl border border-black/5 p-4">
             <div className="font-display text-2xl font-bold text-ink">{s.value}</div>
             <div className="mt-1 text-[11px] text-ink-faint">{s.label}</div>
           </div>
         ))}
         <div className="col-span-3 mt-1 rounded-xl border border-black/5 p-4">
-          <div className="mb-3 h-3 w-28 rounded bg-ink/8" />
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="mb-2 flex items-center gap-2">
-              <div className="h-5 w-5 rounded-full bg-accent/15" />
-              <div className="h-2.5 flex-1 rounded bg-ink/5" />
+          <div className="mb-3 text-[11px] font-medium text-ink-faint">Recent activity</div>
+          {activity.map((a, i) => (
+            <div key={i} className="mb-2 flex items-center gap-2 last:mb-0">
+              <div className="h-6 w-6 shrink-0 rounded-full bg-accent/15" />
+              <div className="flex-1 truncate text-xs text-ink-muted">
+                <span className="font-medium text-ink">{a.who}</span> {a.what}
+              </div>
+              <span className="text-[10px] text-ink-faint">{a.when}</span>
             </div>
           ))}
         </div>
@@ -381,23 +414,22 @@ function PreviewPanel({ tab }: { tab: PreviewTab }) {
   }
 
   if (tab === 'Tasks') {
+    const cols = [
+      { title: 'To Do',       accent: 'bg-ink/5 text-ink-faint',         tasks: ['Review Q4 roadmap', 'Update brand guidelines'] },
+      { title: 'In Progress', accent: 'bg-accent/10 text-accent',        tasks: ['Design pricing page'] },
+      { title: 'Done',        accent: 'bg-emerald-100 text-emerald-700', tasks: ['Launch beta sign-up', 'Onboard new hires'] },
+    ];
     return (
       <div className="grid grid-cols-3 gap-3">
-        {(['To Do', 'In Progress', 'Done'] as const).map((col, ci) => (
-          <div key={col} className="rounded-xl border border-black/5 p-3">
-            <div
-              className={`mb-3 inline-block rounded px-2 py-0.5 text-[10px] font-medium ${
-                ci === 1
-                  ? 'bg-accent/10 text-accent'
-                  : ci === 2
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-ink/5 text-ink-faint'
-              }`}
-            >
-              {col}
+        {cols.map((c) => (
+          <div key={c.title} className="rounded-xl border border-black/5 p-3">
+            <div className={`mb-3 inline-block rounded px-2 py-0.5 text-[10px] font-medium ${c.accent}`}>
+              {c.title}
             </div>
-            {Array.from({ length: ci === 0 ? 2 : ci === 1 ? 1 : 2 }).map((_, ti) => (
-              <div key={ti} className="mb-2 h-8 rounded-lg bg-ink/4" />
+            {c.tasks.map((t, ti) => (
+              <div key={ti} className="mb-2 rounded-lg border border-black/5 bg-paper-raised p-2 text-[11px] leading-snug text-ink">
+                {t}
+              </div>
             ))}
           </div>
         ))}
@@ -406,24 +438,45 @@ function PreviewPanel({ tab }: { tab: PreviewTab }) {
   }
 
   if (tab === 'Chat') {
+    const messages = [
+      { me: false, who: 'Alex',  text: 'Quick question about the API spec' },
+      { me: true,  who: 'You',   text: 'Looking at it now — give me 5' },
+      { me: false, who: 'Sarah', text: 'Anyone got the Figma link?' },
+      { me: true,  who: 'You',   text: 'Just pushed the fix' },
+    ];
     return (
-      <div className="space-y-3">
-        {[
-          { me: false, w: 'w-3/4' },
-          { me: true, w: 'w-2/3' },
-          { me: false, w: 'w-1/2' },
-          { me: true, w: 'w-3/5' },
-        ].map((m, i) => (
+      <div className="space-y-2.5">
+        {messages.map((m, i) => (
           <div key={i} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`flex items-center gap-2 rounded-2xl px-3 py-2 ${m.w} ${
-                m.me ? 'bg-accent/15' : 'border border-black/5 bg-paper-sunken'
-              }`}
-            >
-              {!m.me && <div className="h-5 w-5 shrink-0 rounded-full bg-ink/10" />}
-              <div className="h-2.5 flex-1 rounded bg-ink/10" />
+            <div className={`max-w-[80%] rounded-2xl px-3 py-1.5 text-[11px] leading-relaxed ${
+              m.me ? 'bg-accent/15 text-ink' : 'border border-black/5 bg-paper-sunken text-ink'
+            }`}>
+              {!m.me && <div className="mb-0.5 text-[10px] font-medium text-ink-faint">{m.who}</div>}
+              {m.text}
             </div>
           </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (tab === 'Gallery') {
+    // Tinted gradient tiles suggest photo thumbnails without shipping real images.
+    const thumbs = [
+      'from-blue-200 to-blue-400',
+      'from-amber-200 to-rose-400',
+      'from-emerald-200 to-teal-500',
+      'from-violet-300 to-fuchsia-400',
+      'from-orange-200 to-red-300',
+      'from-cyan-200 to-blue-400',
+    ];
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        {thumbs.map((g, i) => (
+          <div
+            key={i}
+            className={`aspect-square rounded-lg border border-black/5 bg-gradient-to-br ${g}`}
+          />
         ))}
       </div>
     );
@@ -441,6 +494,7 @@ function PreviewPanel({ tab }: { tab: PreviewTab }) {
     </div>
   );
 }
+  
 
 function PreviewCard() {
   const shouldReduce = useReducedMotion();
@@ -469,10 +523,10 @@ function PreviewCard() {
     <section className="overflow-hidden py-24">
       <Reveal className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
         <h2 className="mb-4 font-display text-3xl font-bold tracking-tight text-ink">
-          See it in action
+          Try the workspace
         </h2>
         <p className="mb-12 text-ink-muted">
-          Click through the workspace — tasks, chat, and whiteboards in one place.
+          Click any tab below. Tasks, chat, gallery, whiteboards — same workspace.
         </p>
       </Reveal>
       <Reveal className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -493,7 +547,10 @@ function PreviewCard() {
           {/* Mock app UI */}
           <div className="flex min-h-72">
             <div className="w-44 border-r border-black/5 bg-paper-raised p-4">
-              <div className="mb-4 h-4 w-20 rounded bg-ink/5" />
+              <div className="mb-4">
+                <div className="font-display text-sm font-semibold text-ink">Acme Studio</div>
+                <div className="mt-0.5 text-[10px] text-ink-faint">6 members</div>
+              </div>
               {PREVIEW_TABS.map((item) => (
                 <button
                   key={item}
@@ -651,10 +708,10 @@ export default function LandingClient({ isLoggedIn }: Props) {
     <>
       <StickyNav isLoggedIn={isLoggedIn} />
       <Hero isLoggedIn={isLoggedIn} />
+      <PreviewCard />
       <TrustStrip />
       <Features />
       <HowItWorks />
-      <PreviewCard />
       <CTABand isLoggedIn={isLoggedIn} />
       <Footer />
     </>
