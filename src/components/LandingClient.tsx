@@ -526,7 +526,7 @@ function PreviewCard() {
           Try the workspace
         </h2>
         <p className="mb-12 text-ink-muted">
-          Click any tab below. Tasks, chat, gallery, whiteboards — same workspace.
+          Click any tab below. Tasks, chat, gallery, whiteboards of same workspace.
         </p>
       </Reveal>
       <Reveal className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
