@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { UserPlus, ArrowRightLeft, ChevronDown, FileText } from 'lucide-react';
 import { apiFetch } from '@/lib/client/api';
 import { useAuth } from '@/hooks/useAuth';
 import MembersList from '@/components/MembersList';
@@ -19,6 +20,30 @@ interface WorkspaceDetails {
   role: string;
 }
 
+const ROLE_BADGE: Record<string, string> = {
+  OWNER: 'bg-accent/10 text-accent',
+  ADMIN: 'bg-accent/8 text-accent',
+  MEMBER: 'bg-ink/5 text-ink-muted',
+};
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function daysSince(iso: string): string {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (d <= 0) return 'today';
+  if (d === 1) return 'yesterday';
+  if (d < 30) return `${d} days ago`;
+  const months = Math.floor(d / 30);
+  if (months < 12) return `${months} mo ago`;
+  const years = Math.floor(d / 365);
+  return `${years} yr ago`;
+}
+
 export default function WorkspaceOverviewPage() {
   const params = useParams();
   const router = useRouter();
@@ -32,7 +57,7 @@ export default function WorkspaceOverviewPage() {
   const [showAuditLogs, setShowAuditLogs] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [deleting, setDeleting] = useState(false);
-   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -57,110 +82,210 @@ export default function WorkspaceOverviewPage() {
     setDeleting(false);
   };
 
-  if (loading)
-    return <p className="text-ink-muted">Loading workspace…</p>;
-  if (!ws)
+  /* ── Loading skeleton ─────────────────────────────────── */
+  if (loading) {
     return (
-      <p className="text-red-500">
-        Workspace not found or access denied.
-      </p>
+      <div className="animate-pulse">
+        <div className="mb-8 flex items-center gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-ink/5" />
+          <div className="flex-1 space-y-2">
+            <div className="h-7 w-56 rounded bg-ink/5" />
+            <div className="h-3 w-72 rounded bg-ink/5" />
+          </div>
+        </div>
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <div className="h-20 rounded-2xl bg-ink/5" />
+          <div className="h-20 rounded-2xl bg-ink/5" />
+          <div className="h-20 rounded-2xl bg-ink/5" />
+        </div>
+        <div className="h-64 rounded-2xl bg-ink/5" />
+      </div>
     );
+  }
 
-  return (
-    <div>
-      {/* Title */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-2xl font-bold text-ink">
-          {ws.name}
-        </h1>
+  if (!ws) {
+    return (
+      <div className="rounded-2xl border border-black/5 bg-paper-raised p-8 text-center">
         <p className="text-sm text-ink-muted">
-          Created on{' '}
-          {new Date(ws.createdAt).toLocaleDateString()} · Your role:{' '}
-          <strong>{ws.role}</strong>
+          Workspace not found or access denied.
         </p>
       </div>
+    );
+  }
 
-      {/* Members */}
-      <div className="mb-6 rounded-xl rounded-2xl border border-black/5 bg-paper-sunken p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-ink">
-            Members ({ws.memberCount})
-          </h3>
-          {(ws.role === 'OWNER' || ws.role === 'ADMIN') && (
-            <button
-              onClick={() => setShowInvite(true)}
-              className="rounded-lg inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
-            >
-              + Invite Member
-            </button>
-          )}
+  const isOwner = ws.role === 'OWNER';
+  const isStaff = isOwner || ws.role === 'ADMIN';
+
+  return (
+    <div className="space-y-6">
+      {/* ── Header: monogram + name + role + meta ─────────── */}
+      <header className="flex items-start gap-4">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent/70 font-display text-lg font-bold text-white shadow-soft-sm">
+          {initialsOf(ws.name)}
         </div>
-        <MembersList
-          workspaceId={workspaceId}
-          currentUserRole={ws.role}
-          refreshTrigger={refreshKey}
-        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-ink">
+              {ws.name}
+            </h1>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${ROLE_BADGE[ws.role] ?? ''}`}
+            >
+              {ws.role}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-ink-faint">
+            Created {daysSince(ws.createdAt)} ·{' '}
+            {new Date(ws.createdAt).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </p>
+        </div>
+      </header>
+
+      {/* ── Quick stats ────────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-black/5 bg-paper-raised p-4">
+          <div className="font-display text-2xl font-bold text-ink">
+            {ws.memberCount}
+          </div>
+          <div className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-faint">
+            {ws.memberCount === 1 ? 'Member' : 'Members'}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-black/5 bg-paper-raised p-4">
+          <div className="font-display text-2xl font-bold text-ink">
+            {ws.role}
+          </div>
+          <div className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-faint">
+            Your role
+          </div>
+        </div>
+        <div className="rounded-2xl border border-black/5 bg-paper-raised p-4">
+          <div className="font-display text-2xl font-bold text-ink">
+            {daysSince(ws.createdAt).replace(' ago', '')}
+          </div>
+          <div className="mt-0.5 text-[11px] uppercase tracking-wide text-ink-faint">
+            Workspace age
+          </div>
+        </div>
       </div>
 
-      {/* Ownership Transfer (OWNER only) */}
-      {ws.role === 'OWNER' && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-6">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-amber-900">
-              Transfer Ownership
-            </h3>
-            <button
-              onClick={() => setShowTransfer(true)}
-              className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
-            >
-              Transfer
-            </button>
+      {/* ── Members ────────────────────────────────────────── */}
+      <section className="overflow-hidden rounded-2xl border border-black/5 bg-paper-raised">
+        <div className="flex items-center justify-between border-b border-black/5 px-6 py-4">
+          <div>
+            <h2 className="font-display text-base font-semibold text-ink">
+              Members
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-faint">
+              People with access to this workspace
+            </p>
           </div>
-          <p className="text-sm text-amber-700">
-            Transfer this workspace to another member. You will be
-            demoted to Admin.
-          </p>
-        </div>
-      )}
-
-      {/* Audit Logs (OWNER + ADMIN) */}
-      {(ws.role === 'OWNER' || ws.role === 'ADMIN') && (
-        <div className="mb-6 rounded-xl rounded-2xl border border-black/5 bg-paper-sunken p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-ink">
-              Audit Logs
-            </h3>
+          {isStaff && (
             <button
-              onClick={() => setShowAuditLogs((v) => !v)}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-white"
+              onClick={() => setShowInvite(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-sm font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
             >
-              {showAuditLogs ? 'Hide' : 'Show'}
+              <UserPlus className="h-4 w-4" strokeWidth={2} />
+              Invite
             </button>
-          </div>
-          {showAuditLogs && (
-            <AuditLogTable workspaceId={workspaceId} />
           )}
         </div>
+        <div className="px-6 py-4">
+          <MembersList
+            workspaceId={workspaceId}
+            currentUserRole={ws.role}
+            refreshTrigger={refreshKey}
+          />
+        </div>
+      </section>
+
+      {/* ── Activity (audit log) ──────────────────────────── */}
+      {isStaff && (
+        <section className="overflow-hidden rounded-2xl border border-black/5 bg-paper-raised">
+          <button
+            onClick={() => setShowAuditLogs((v) => !v)}
+            className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-ink/4"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="h-4 w-4 text-ink-faint" strokeWidth={1.75} />
+              <div>
+                <h2 className="font-display text-base font-semibold text-ink">
+                  Activity log
+                </h2>
+                <p className="mt-0.5 text-xs text-ink-faint">
+                  Recent actions in this workspace
+                </p>
+              </div>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-ink-faint transition-transform ${
+                showAuditLogs ? 'rotate-180' : ''
+              }`}
+              strokeWidth={2}
+            />
+          </button>
+          {showAuditLogs && (
+            <div className="border-t border-black/5 px-6 py-4">
+              <AuditLogTable workspaceId={workspaceId} />
+            </div>
+          )}
+        </section>
       )}
 
-      {/* Danger zone */}
-      {ws.role === 'OWNER' && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-          <h3 className="mb-2 text-lg font-semibold text-red-900">
-            Danger Zone
-          </h3>
-          <p className="mb-4 text-sm text-red-700">
-            Deleting this workspace will permanently remove all tasks,
-            messages, and member associations.
-          </p>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={deleting}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {deleting ? 'Deleting…' : 'Delete Workspace'}
-          </button>
-        </div>
+      {/* ── Owner-only settings ───────────────────────────── */}
+      {isOwner && (
+        <section className="overflow-hidden rounded-2xl border border-black/5 bg-paper-raised">
+          <div className="border-b border-black/5 px-6 py-4">
+            <h2 className="font-display text-base font-semibold text-ink">
+              Workspace settings
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-faint">
+              Owner-only controls
+            </p>
+          </div>
+          <div className="divide-y divide-black/5">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-start gap-3">
+                <ArrowRightLeft className="mt-0.5 h-4 w-4 text-ink-faint" strokeWidth={1.75} />
+                <div>
+                  <div className="text-sm font-medium text-ink">
+                    Transfer ownership
+                  </div>
+                  <div className="mt-0.5 text-xs text-ink-faint">
+                    Hand this workspace to another member. You become an Admin.
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowTransfer(true)}
+                className="rounded-xl border border-black/8 px-3.5 py-1.5 text-sm font-medium text-ink-muted transition-colors hover:bg-ink/4 hover:text-ink"
+              >
+                Transfer
+              </button>
+            </div>
+            <div className="flex items-center justify-between px-6 py-4">
+              <div>
+                <div className="text-sm font-medium text-ink">
+                  Delete workspace
+                </div>
+                <div className="mt-0.5 text-xs text-ink-faint">
+                  Permanently removes tasks, messages, whiteboards, gallery, and member access.
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleting}
+                className="rounded-xl border border-red-200 px-3.5 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </section>
       )}
 
       <InviteModal
@@ -178,10 +303,9 @@ export default function WorkspaceOverviewPage() {
           workspaceId={workspaceId}
           currentUserId={user.id}
           onTransferred={() => {
-            // Reload workspace details to reflect new role
             window.location.reload();
           }}
-       />
+        />
       )}
 
       <ConfirmDialog

@@ -24,7 +24,6 @@ interface SignedParams {
   timestamp: number;
   signature: string;
   folder: string;
-  maxFileSize: number;
   allowedFormats: string;
 }
 
@@ -58,9 +57,17 @@ export default function GalleryGrid({ workspaceId, userRole }: Props) {
     fetchImages();
   }, [fetchImages]);
 
-  const handleFile = async (file: File) => {
+const handleFile = async (file: File) => {
     setUploadError('');
+
+    // Reject oversized files before bothering the server/Cloudinary
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('Image must be 10 MB or smaller.');
+      return;
+    }
+
     setUploading(true);
+    // ... rest unchanged
 
     // 1. Ask our server for signed Cloudinary upload params
     const signRes = await apiFetch<SignedParams>(
@@ -74,7 +81,7 @@ export default function GalleryGrid({ workspaceId, userRole }: Props) {
     }
     const s = signRes.data;
 
-    // 2. Upload file directly to Cloudinary
+    // 2. Upload file directly at Cloudinary
     const form = new FormData();
     form.append('file', file);
     form.append('api_key', s.apiKey);
@@ -82,7 +89,6 @@ export default function GalleryGrid({ workspaceId, userRole }: Props) {
     form.append('signature', s.signature);
     form.append('folder', s.folder);
     form.append('allowed_formats', s.allowedFormats);
-    form.append('max_file_size', String(s.maxFileSize));
 
     const cloudUrl = `https://api.cloudinary.com/v1_1/${s.cloudName}/image/upload`;
     let cloudData: {

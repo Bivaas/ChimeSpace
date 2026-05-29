@@ -7,13 +7,13 @@ cloudinary.config({
   secure:     true,
 });
 
+
 export interface SignedUploadParams {
   cloudName: string;
   apiKey:    string;
   timestamp: number;
   signature: string;
   folder:    string;
-  maxFileSize: number;
   allowedFormats: string;
 }
 
@@ -25,13 +25,11 @@ export function signUploadParams(workspaceId: string): SignedUploadParams {
   const timestamp = Math.floor(Date.now() / 1000);
   const folder = `chimespace/${workspaceId}`;
   const allowedFormats = 'jpg,jpeg,png,webp,gif';
-  const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
   // Params to sign (alphabetical order, exclude file/api_key/resource_type/cloud_name)
   const paramsToSign: Record<string, string | number> = {
     allowed_formats: allowedFormats,
     folder,
-    max_file_size:   maxFileSize,
     timestamp,
   };
 
@@ -46,7 +44,6 @@ export function signUploadParams(workspaceId: string): SignedUploadParams {
     timestamp,
     signature,
     folder,
-    maxFileSize,
     allowedFormats,
   };
 }
