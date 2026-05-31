@@ -1,4 +1,5 @@
 'use client';
+import '@excalidraw/excalidraw/index.css';
 
 import {
   useCallback,
@@ -261,69 +262,82 @@ export default function WhiteboardEditor({
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
-        <div className="flex items-center gap-4">
-          <h2 className="truncate text-lg font-semibold text-slate-900">
-            {title}
-          </h2>
+     
+     {/* Toolbar */}
+      <div className="flex items-center gap-3 border-b border-black/5 bg-paper-raised px-4 py-2.5">
+      
+      {/* Left: back link + title */}
+        <a
+          href={`/workspace/${workspaceId}/whiteboards`}
+          className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs text-ink-faint transition-colors hover:bg-ink/5 hover:text-ink"
+        >
+          {'\u2190'} Back
+        </a>
+          
+        <div className="h-5 w-px bg-black/10" />
+        <h2 className="truncate font-display text-sm font-semibold text-ink">
+          {title}
+        </h2>
 
-          <button
-            onClick={publish}
-            className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md active:scale-95"
-          >
-            Publish
-          </button>
-
+        {/* Middle: status messages */}
+        <div className="ml-2 flex min-w-0 flex-1 items-center gap-3">
           {draftSaving && (
-            <span className="text-xs text-slate-400">Saving draft…</span>
+            <span className="truncate text-[11px] text-ink-faint">Saving draft…</span>
           )}
           {publishStatus && (
-            <span className="text-sm font-medium text-green-600">
+            <span className="truncate text-xs font-medium text-emerald-600">
               {publishStatus}
             </span>
           )}
-          {!publishStatus && lastPublished && (
-            <span className="text-xs text-slate-400">
-              Published:{' '}
-              {new Date(lastPublished).toLocaleTimeString()}
+          {!publishStatus && !draftSaving && lastPublished && (
+            <span className="truncate text-[11px] text-ink-faint">
+              Published {new Date(lastPublished).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
 
-        {/* View toggle */}
-        <div className="flex overflow-hidden rounded-lg border border-slate-200">
+        {/* Right: view toggle + publish */}
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex overflow-hidden rounded-lg border border-black/8">
+            <button
+              onClick={() => switchView('draft')}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === 'draft'
+                  ? 'bg-accent/10 text-accent'
+                  : 'bg-paper-raised text-ink-muted hover:bg-ink/4'
+              }`}
+            >
+              Draft
+            </button>
+            <button
+              onClick={() => switchView('published')}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === 'published'
+                  ? 'bg-accent/10 text-accent'
+                  : 'bg-paper-raised text-ink-muted hover:bg-ink/4'
+              }`}
+            >
+              Published
+            </button>
+          </div>
+
           <button
-            onClick={() => switchView('draft')}
-            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-              viewMode === 'draft'
-                ? 'bg-blue-50 text-blue-700'
-                : 'bg-white text-slate-500 hover:bg-slate-50'
-            }`}
+            onClick={publish}
+            className="rounded-xl bg-accent px-3.5 py-1.5 text-xs font-medium text-white shadow-soft-sm transition-all hover:-translate-y-px hover:shadow-soft active:scale-[0.97]"
           >
-            Draft
-          </button>
-          <button
-            onClick={() => switchView('published')}
-            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-              viewMode === 'published'
-                ? 'bg-blue-50 text-blue-700'
-                : 'bg-white text-slate-500 hover:bg-slate-50'
-            }`}
-          >
-            Published
+            Publish
           </button>
         </div>
       </div>
 
       {/* Auto-publish info bar */}
-      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-1">
-        <p className="text-[11px] text-slate-400">
-          draft autosaved every 2s · Auto-publishes every 30s
+      <div className="flex items-center justify-between border-b border-black/5 bg-paper-sunken px-4 py-1.5">
+        <p className="text-[10px] text-ink-faint">
+          Draft autosaves every 2s · Auto-publishes every 30s
         </p>
         {viewMode === 'published' && (
-          <span className="rounded bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-            View-only (published snapshot)
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+            View-only snapshot
           </span>
         )}
       </div>

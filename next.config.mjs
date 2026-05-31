@@ -29,6 +29,8 @@ const nextConfig = {
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
         "worker-src 'self' blob:",
+        "img-src 'self' https://lh3.googleusercontent.com https://res.cloudinary.com data: blob:",
+        "connect-src 'self' https://unpkg.com https://api.cloudinary.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' data: https://unpkg.com https://fonts.gstatic.com https://excalidraw.com https://esm.sh",
         "img-src 'self' https://lh3.googleusercontent.com https://res.cloudinary.com data: blob:",
