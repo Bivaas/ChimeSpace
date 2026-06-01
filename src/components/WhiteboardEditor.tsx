@@ -1,4 +1,5 @@
 'use client';
+// @ts-expect-error:
 import '@excalidraw/excalidraw/index.css';
 
 import {

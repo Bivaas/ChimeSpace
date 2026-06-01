@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { ApiSuccessResponse, ApiErrorResponse } from '@/types';
 
-/**
- * Standardized success response.
- */
+
 export function successResponse<T>(
   data: T,
   status: number = 200
@@ -14,9 +12,7 @@ export function successResponse<T>(
   );
 }
 
-/**
- * Standardized error response — never leaks stack traces.
- */
+
 export function errorResponse(
   message: string,
   status: number = 400,

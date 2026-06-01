@@ -28,15 +28,6 @@ Things I made sure to have secure application:
 - CSP headers restricted to specific domains (like Google avatars, Cloudinary, Excalidraw assets).
 
 
-## What I'd build next, given more time
-
-- WebSockets (or SSE) for chat
-- Per-task assignees and due dates
-- Markdown rendering in chat messages
-- Custom granular roles beyond the flat Owner/Admin/Member hierarchy
-- Perform a lot of Tests.
-
-
 ## AI assistance
 
 I used AI tools throughout this project and want to be straightforward about how, because I think honesty about it matters more than pretending I didn't.
@@ -48,3 +39,17 @@ I used AI tools throughout this project and want to be straightforward about how
 **What I did myself:-** every architectural choice and trade-off (chat polling vs WebSockets, draft/publish split for whiteboards, when to use signed Cloudinary uploads vs proxying, the env-gated dev-login bypass design); using correct library (Upstash for Redis-backed rate limiting, Cloudinary for image storage, Excalidraw for the whiteboard, Framer Motion for landing-page animations); the integration work to wire pieces together; debugging deployment issues; testing every flow manually in the browser; the production environment configuration; and the writing in this README. I understand every line of code in the repository.
 
 If you have questions about why something is the way it is, I can answer them.
+
+# Images
+
+**Main Landing Page**
+
+![Screenshot](images/main.png)
+
+**Task Management**
+
+![Screenshot](images/todolist.png)
+
+**Gallery**
+
+![Screenshot](images/Gallery.png)
